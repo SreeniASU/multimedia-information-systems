@@ -1,0 +1,19 @@
+9/13 (sun)
+notes by Derek Norman
+
+install dep: Windows
+opencv
+python 2.7
+gstreamer (for video)
+numpy
+
+part 1:
+jake : in progress
+sreenivas: in progress
+
+part 2:
+james : accepts/collects user inputs. open and create opencv objects from a video. Get a grayscale 
+gabriel : out of town until sun night
+
+Tests/extra help / reports/
+derek: added to part 2 code and helped james.
