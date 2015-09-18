@@ -14,25 +14,27 @@ import cv2
 import numpy as np
 import math
 
+import colors2image as c2i
+
 # Class which handles colormap creation
 class ColorMapCreator:
     # Asks the user for the color space to be used
     def getColorSpace(self):
         print('Available color spaces  \n')
         print('*****************************\n')
-        print(' 1. RGB \n 2. XYZ \n 3. Lab \n 4. YUV \n 5.YCbCr \n 6. YIQ \n 7. HSL \n')
+        print(' 1. RGB \n 2. XYZ \n 3. Lab \n 4. Luv \n 5.YCrCb \n 6. HLS \n 7. HSV \n')
         self.colorSpace = input('Enter colorspace (1-7) to be used: ')
 
     # Asks the user for the three color instances from the color space
     # c0,c1,c2 will be stored as tuples
     def getColorInstance(self):
-        self.c0 = input('Enter value for C0, the format should be (X,Y,Z)')
-        self.c1 = input('Enter value for C1, the format should be (X,Y,Z)')
-        self.c2 = input('Enter value for C2, the format should be (X,Y,Z)')
+        self.c0 = input('Enter value for C0, the format should be (X,Y,Z): ')
+        self.c1 = input('Enter value for C1, the format should be (X,Y,Z): ')
+        self.c2 = input('Enter value for C2, the format should be (X,Y,Z): ')
 
     # Asks the user for the number of bits
     def getNumberOfBits(self):
-        self.numberOfBits = input('Enter number of bits greater than 1')
+        self.numberOfBits = input('Enter number of bits (from 2 to 8): ')
 
     # Creates the colormap based on the user inputs
     # The algorithm for the method goes like this
@@ -72,14 +74,14 @@ class ColorMapCreator:
 
 colorMapCreatorObj = ColorMapCreator()
 colorMap = colorMapCreatorObj.GetColorMap()
-print(colorMap)
 
 print('Writing the colormap to text file')
 file = open('colormaptextfile.txt','w')
 file.write(str(colorMap))
 file.close()
 
-
+print('Printing the colormap to a jpg file')
+c2i.colors2image(colorMap, colorMapCreatorObj.colorSpace)
 
 
 
