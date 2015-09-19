@@ -9,6 +9,11 @@ def log(message):
 	print("--------------------------------------------------------------")
 	return
 
+def displayImage(title,image):
+	cv2.imshow(title,image)
+	log("Press any key while viewing image to close image and proceed")
+	cv2.waitKey(0)
+	
 def colormap2lut(colormap) :
 	# for more information see Part 1 by Jake Pruitt
     times = 256 / len(colormap)
@@ -35,7 +40,6 @@ def scaleImage(image) :
 
 
 def getNumberOfFrames(vid):
-	# this function reads each frame and increments a counter for each frame that it reads
 	log("Start - Gathering frames from the video")
 	counter = 1
 
@@ -51,11 +55,6 @@ def getNumberOfFrames(vid):
 
 	return counter - 1
 
-def displayImage(title, image):
-	cv2.imshow(title,image)
-	cv2.waitKey(0)
-	return
-
 def showFiles(files):
 	print('======= List of Files =======')
 	print('\n'.join(str(p) for p in files))
@@ -66,16 +65,30 @@ def safeGetDirectory():
 	while 1:
 		try:
 			rootDir = raw_input('Please enter the path where video files are located: ')
-			validate = raw_input("Directory set to: " + rootDir + " is this okay? Y/N")
-			if(validate == 'Y'):
+			validate = raw_input("Directory set to: " + rootDir + " is this okay? Y/N    ")
+			if(validate == 'Y' or validate == 'y'):
 				return rootDir
 		except:
 			log("Directory not found!")
 
-def getFramesFromSelectedVideo(rootDir):
-	videoName = raw_input('Enter the name of the file you wish to read: ')
-	videoName = rootDir + '/' + videoName
-	log(videoName + " has been selected for processing")
+def getFramesFromSelectedVideo():
+	videoName = ""
+	while(1):
+		try:
+			videoName = raw_input('Enter the name of the file you wish to read: ')
+			videoName = rootDir + '/' + videoName
+			validate = raw_input(videoName + " has been selected for processing is this okay? Y/N    ")
+			if(validate == 'Y' or validate == 'y'):
+				video = cv2.VideoCapture(videoName)
+				if video.isOpened():
+					break
+				else:
+					log("Cannot open specified video")
+					videoName = ""
+			else:
+				videoName = ""
+		except:
+			log("Unable to open video")
 
 	#function to get the number of frames of a video
 
@@ -102,25 +115,20 @@ def getFramesFromSelectedVideo(rootDir):
 	gray1 = ""
 	gray2 = ""
 
-
 	while(video.isOpened()):
 		ret,frame = video.read()
-
 		if ret: #if video is still running...
-
 			if frame1Read == count:
 				log("Grabbing and converting frame 1 to grayscale")
 				gray1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 			elif frame2Read == count:
 				log("Grabbing and converting frame 2 to grayscale")
 				gray2 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
 			count += 1
 		else:
 			break
 	
-	video.release()
-	return gray1,gray2
+	return (gray1,gray2)
 
 def getColorImage(image):
 	while(1):
@@ -152,9 +160,11 @@ onlyfiles = [ f for f in listdir(rootDir) if isfile(join(rootDir,f))]
 showFiles(onlyfiles)
 
 #Prompt user for a video and two frames, then get those two frames and convert to grayscale
-gray1,gray2 = getFramesFromSelectedVideo(rootDir)
+gray1,gray2 = getFramesFromSelectedVideo()
 
+	
 displayImage('Frame 1 Grayscale',gray1)
+
 displayImage('Frame 2 Grayscale',gray2)
 
 cv2.destroyAllWindows()
@@ -170,7 +180,7 @@ displayImage('Scaled Delta Image',scaled_points)
 showFiles(onlyfiles)
 
 #Create a color image out of the passes image
-colorImage = getColorImage(gray_delta)
+colorImage = getColorImage(scaled_points)
 
 displayImage('final_image',colorImage)
 

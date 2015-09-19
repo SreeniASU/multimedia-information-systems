@@ -29,12 +29,7 @@ def applyCustomColorMap(lut, colorspace) :
     grid = (gradient * row).reshape(256, 256, 1)
     depth = np.ones(3, dtype=np.uint8)
 
-    print (grid * depth)
-    raw_input()
-
     im_color = cv2.LUT(grid * depth, lut)
-
-    print ("im_color: ",im_color)
 
     # Cases for different color schemes:
     # default RGB for now, so switch B and R:
@@ -45,7 +40,7 @@ def applyCustomColorMap(lut, colorspace) :
         im_color[:, :, 2] = im_color[:, :, 0]
         im_color[:, :, 0] = red
     elif colorspace == 'XYZ': 
-        im_color = cv2.cvtColor(im_color, cv2.CV_XYZ2BGR)
+        im_color = cv2.cvtColor(im_color, cv2.cv.CV_XYZ2BGR)
     elif colorspace == 'Lab': 
         im_color = cv2.cvtColor(im_color, cv2.CV_Lab2BGR)
     elif colorspace == 'Luv': 
