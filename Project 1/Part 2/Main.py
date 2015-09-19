@@ -1,9 +1,42 @@
 import numpy as np
 import cv2
-import pickle
+from os import listdir
+from os.path import isfile,join
 
-#function to get the number of frames of a video
+def log(message):
+	print("--------------------------------------------------------------")
+	print(message)
+	print("--------------------------------------------------------------")
+	return
+
+def colormap2lut(colormap) :
+	# for more information see Part 1 by Jake Pruitt
+    times = 256 / len(colormap)
+    lut = np.zeros((256, 1, 3), dtype=np.uint8)
+    for i in xrange(0, len(colormap)):
+        for j in xrange(0, times):
+            lut[times*i+j][0] = colormap[i]
+
+    return lut
+
+def scaleImage(image) :
+	log("Start - Scaling delta image to from -1 to 1")
+	high = 1.0															# our high value
+	low = -1.0															# our low value
+
+	mins = np.min(image, axis=0)										# find the min of our image
+	maxs = np.max(image, axis=0)										# and the max
+	rng = maxs - mins													# calculate the range
+
+	scaled_points = high - (((high - low) * (maxs - image)) / rng)		# and scale our image with these values
+	log("Finished - Scaling delta image to from -1 to 1")
+
+	return scaled_points
+
+
 def getNumberOfFrames(vid):
+	# this function reads each frame and increments a counter for each frame that it reads
+	log("Start - Gathering frames from the video")
 	counter = 1
 
 	while(vid.isOpened()):
@@ -14,97 +47,131 @@ def getNumberOfFrames(vid):
 		else:
 			vid.release()
 			break
+	log("Finished - Gathering frames from the video")
 
 	return counter - 1
 
-video = cv2.VideoCapture('1.mp4')
+def displayImage(title, image):
+	cv2.imshow(title,image)
+	cv2.waitKey(0)
+	return
 
-n_frames = getNumberOfFrames(video)
+def showFiles(files):
+	print('======= List of Files =======')
+	print('\n'.join(str(p) for p in files))
+	print('===================================')
+	return
 
-video = cv2.VideoCapture('1.mp4') #we have to get the capture again after the 'getNumberOfFrames' function
+def safeGetDirectory():
+	while 1:
+		try:
+			rootDir = raw_input('Please enter the path where video files are located: ')
+			validate = raw_input("Directory set to: " + rootDir + " is this okay? Y/N")
+			if(validate == 'Y'):
+				return rootDir
+		except:
+			log("Directory not found!")
 
-#initialization of 'frame1Read' and 'frame2Read' variables
-frame1Read = n_frames + 1
-frame2Read = n_frames + 1
+def getFramesFromSelectedVideo():
+	videoName = raw_input('Enter the name of the file you wish to read: ')
+	videoName = rootDir + '/' + videoName
+	log(videoName + " has been selected for processing")
 
-#while loop to validate user input
-while (frame1Read > n_frames or frame2Read > n_frames or frame1Read <= 0 or frame2Read <= 0):
-	print("Number of frames of the video: " + str(n_frames))
-	frame1Read = int(raw_input("Enter the first frame to compare: "))
-	frame2Read = int(raw_input("Enter the second frame to compare: "))
+	#function to get the number of frames of a video
 
-	if (frame1Read > n_frames or frame2Read > n_frames):
-		raw_input('Invalid frame number(s)!')
-
-count = 1
-
-gray1 = ""
-gray2 = ""
-
-while(video.isOpened()):
-	ret,frame = video.read()
+	video = cv2.VideoCapture(videoName)
+	n_frames = getNumberOfFrames(video)
+	video = cv2.VideoCapture(videoName) #we have to get the capture again after the 'getNumberOfFrames' function
 
 
-	if ret: #if video is still running...
+	#initialization of 'frame1Read' and 'frame2Read' variables
+	frame1Read = n_frames + 1
+	frame2Read = n_frames + 1
 
-		if frame1Read == count:
-			#cv2.imshow('frame1Read',frame)
-			#cv2.waitKey(0)
-			gray1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-			#cv2.waitKey(0)
-			#cv2.imwrite('frame' + str(frame1Read) + '.png',frame)
-		elif frame2Read == count:
-			gray2 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-			#cv2.imshow('frame2Read',frame)
-			#cv2.waitKey(0)
-			#cv2.imwrite('frame' + str(frame2Read) + '.png',frame)
+	#while loop to validate user input
+	while (frame1Read > n_frames or frame2Read > n_frames or frame1Read <= 0 or frame2Read <= 0):
+		print("Number of frames of the video: " + str(n_frames))
+		frame1Read = int(raw_input("Enter the first frame to compare: "))
+		frame2Read = int(raw_input("Enter the second frame to compare: "))
 
-		count += 1
-	else:
-		break
+		if (frame1Read > n_frames or frame2Read > n_frames):
+			raw_input('Invalid frame number(s)!')
 
-cv2.imshow('frame1',gray1)
-cv2.waitKey(0)
+	count = 1
 
-cv2.imshow('frame2',gray2)
-cv2.waitKey(0)
+	gray1 = ""
+	gray2 = ""
+
+	while(video.isOpened()):
+		ret,frame = video.read()
+
+		if ret: #if video is still running...
+
+			if frame1Read == count:
+				log("Grabbing and converting frame 1 to grayscale")
+				print("frame 1: ",frame[1,1])
+				gray1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+			elif frame2Read == count:
+				log("Grabbing and converting frame 2 to grayscale")
+				gray2 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+			count += 1
+		else:
+			break
+
+		video.release()
+		return gray1,gray2
+
+def getColorImage(image):
+	while(1):
+		colorMapFileName = raw_input('Please select a colormap for processing: ') 	# prompt user for input
+		colorMapFileName = rootDir + '/' + colorMapFileName							# append / for path
+		try:
+			file = open(colorMapFileName, 'r')										# open the file
+			colorMap = eval(file.read())											# read in the values
+			lut = colormap2lut(colorMap)											# generate a look up table from the map
+			deltaColorFormat = cv2.cvtColor(gray_delta, cv2.COLOR_GRAY2RGB)			# set the colorspace of our image to RGB
+
+			colorImage = cv2.LUT(deltaColorFormat,lut)								# apply the colormap from the LUT
+
+			return colorImage
+
+		except:
+			log("Unable to open file")
+
+
+
+#  ============================================================================================
+#  										MAIN FUNCTION BODY
+#  ============================================================================================
+#get the directory from the user
+rootDir = safeGetDirectory()
+
+#find all the files in this directory
+onlyfiles = [ f for f in listdir(rootDir) if isfile(join(rootDir,f))]
+showFiles(onlyfiles)
+
+#Prompt user for a video and two frames, then get those two frames and convert to grayscale
+gray1,gray2 = getFramesFromSelectedVideo(rootDir)
+
+displayImage('Frame 1 Grayscale',gray1)
+displayImage('Frame 2 Grayscale',gray2)
+
 cv2.destroyAllWindows()
 
+#calculate our difference image delta
 gray_delta = gray1 - gray2
+displayImage('Delta Image',gray_delta)
 
-cv2.imshow('delta',gray_delta)
-cv2.waitKey(0)
+#calculate the scaled image
+scaled_points = scaleImage(gray_delta)
+displayImage('Scaled Delta Image',scaled_points)
 
-#new_image = cv2.cvtColor(gray_delta,cv2.CV_32F)
-#cv2.imshow('delta',new_image)
-#cv2.waitKey(0)
+showFiles(onlyfiles)
 
-#gray1.convertTo(dst, CV_32F)
+#Create a color image out of the passes image
+colorImage = getColorImage(gray_delta)
 
-high = 1.0
-low = -1.0
+displayImage('final_image',colorImage)
 
-mins = np.min(gray_delta, axis=0)
-maxs = np.max(gray_delta, axis=0)
-rng = maxs - mins
-
-scaled_points = high - (((high - low) * (maxs - gray_delta)) / rng)
-
-#text_file = open('new_grayscale.txt','w')
-
-#text_file.write(gray_delta)
-
-#text_file.write('\n\n\n %s' % scaled_points)
-
-f = open("new_grayscale.txt", "w")
-f.write("".join(map(lambda x: str(x), scaled_points)))
-f.close()
-
-#print("gray delta new: ",scaled_points)
-cv2.imshow('gray delta new',scaled_points)
-cv2.waitKey(0)
-
-print(count)
-
-video.release()
 cv2.destroyAllWindows()
