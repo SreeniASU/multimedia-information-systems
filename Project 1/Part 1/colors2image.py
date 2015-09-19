@@ -31,26 +31,23 @@ def applyCustomColorMap(lut, colorspace) :
 
     im_color = cv2.LUT(grid * depth, lut)
 
-    # Cases for different color schemes:
-    # default RGB for now, so switch B and R:
+    print cv2.cv
 
     if colorspace == 'RGB':
-        red = np.zeros((256, 256, 1), dtype=np.uint8)
-        red = np.copy(im_color[:, :, 2])
-        im_color[:, :, 2] = im_color[:, :, 0]
-        im_color[:, :, 0] = red
-    elif colorspace == 'XYZ': 
+        # Convert to BGR:
+        cv2.mixChannels(im_color, im_color, [0, 2, 1, 1, 2, 0])
+    elif colorspace == 'XYZ':
         im_color = cv2.cvtColor(im_color, cv2.cv.CV_XYZ2BGR)
-    elif colorspace == 'Lab': 
-        im_color = cv2.cvtColor(im_color, cv2.CV_Lab2BGR)
-    elif colorspace == 'Luv': 
-        im_color = cv2.cvtColor(im_color, cv2.CV_Luv2BGR)
-    elif colorspace == 'YCrCb': 
-        im_color = cv2.cvtColor(im_color, cv2.CV_YCrCb2BGR)
+    elif colorspace == 'Lab':
+        im_color = cv2.cvtColor(im_color, cv2.cv.CV_Lab2BGR)
+    elif colorspace == 'Luv':
+        im_color = cv2.cvtColor(im_color, cv2.cv.CV_Luv2BGR)
+    elif colorspace == 'YCrCb':
+        im_color = cv2.cvtColor(im_color, cv2.cv.CV_YCrCb2BGR)
     elif colorspace == 'HLS': 
-        im_color = cv2.cvtColor(im_color, cv2.CV_HSV2BGR)
+        im_color = cv2.cvtColor(im_color, cv2.cv.CV_HSV2BGR)
     elif colorspace == 'HSV': 
-        im_color = cv2.cvtColor(im_color, cv2.CV_HSV2BGR)
+        im_color = cv2.cvtColor(im_color, cv2.cv.CV_HSV2BGR)
 
     return im_color
 
