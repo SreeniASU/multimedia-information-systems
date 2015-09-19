@@ -72,7 +72,7 @@ def safeGetDirectory():
 		except:
 			log("Directory not found!")
 
-def getFramesFromSelectedVideo():
+def getFramesFromSelectedVideo(rootDir):
 	videoName = raw_input('Enter the name of the file you wish to read: ')
 	videoName = rootDir + '/' + videoName
 	log(videoName + " has been selected for processing")
@@ -102,6 +102,7 @@ def getFramesFromSelectedVideo():
 	gray1 = ""
 	gray2 = ""
 
+
 	while(video.isOpened()):
 		ret,frame = video.read()
 
@@ -109,7 +110,6 @@ def getFramesFromSelectedVideo():
 
 			if frame1Read == count:
 				log("Grabbing and converting frame 1 to grayscale")
-				print("frame 1: ",frame[1,1])
 				gray1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 			elif frame2Read == count:
 				log("Grabbing and converting frame 2 to grayscale")
@@ -118,9 +118,9 @@ def getFramesFromSelectedVideo():
 			count += 1
 		else:
 			break
-
-		video.release()
-		return gray1,gray2
+	
+	video.release()
+	return gray1,gray2
 
 def getColorImage(image):
 	while(1):
