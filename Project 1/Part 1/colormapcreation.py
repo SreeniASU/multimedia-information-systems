@@ -23,14 +23,82 @@ class ColorMapCreator:
         print('Available color spaces  \n')
         print('*****************************\n')
         print(' 1. RGB \n 2. XYZ \n 3. Lab \n 4. Luv \n 5.YCrCb \n 6. HLS \n 7. HSV \n')
-        self.colorSpace = input('Enter colorspace (1-7) to be used: ')
+        self.colorSpace = int( input('Enter colorspace (1-7) to be used: '))
+        while self.colorSpace < 1  or self.colorSpace >7:
+            self.colorSpace = input('Invalid colorspace chosen, enter one between (1-7): ')
 
     # Asks the user for the three color instances from the color space
     # c0,c1,c2 will be stored as tuples
     def getColorInstance(self):
-        self.c0 = input('Enter value for C0, the format should be (X,Y,Z): ')
-        self.c1 = input('Enter value for C1, the format should be (X,Y,Z): ')
-        self.c2 = input('Enter value for C2, the format should be (X,Y,Z): ')
+        xmin = 0
+        xmax = 255
+        ymin = 0
+        ymax = 255
+        zmin = 0
+        zmax = 255
+        # Maximum and minimum range for R, G and B channels
+        if self.colorSpace == 1:
+            xmin = 0
+            xmax = 255
+            ymin = 0
+            ymax = 255
+            zmin = 0
+            zmax = 255
+        # Maximum and minimumum range for X, Y and Z channels. This needs to be verified once again
+        elif self.colorSpace == 2:
+            xmin = 0
+            xmax = 242
+            ymin = 0
+            ymax = 255
+            zmin = 0
+            zmax = 277
+        # Maximuum and minimum range for L*a*b* channels
+        elif self.colorSpace == 3:
+            xmin = 1
+            xmax = 255
+            ymin = 1
+            ymax = 255
+            zmin = 1
+            zmax = 255
+        # Maximum and minimum range for Luv channels
+        elif self.colorSpace == 4:
+            xmin = 0
+            xmax = 255
+            ymin = 0
+            ymax = 255
+            zmin = 0
+            zmax = 255
+        # Maximum and minimum range for YCrCb channels
+        elif self.colorSpace == 5:
+            xmin = 0
+            xmax = 255
+            ymin = 0
+            ymax = 255
+            zmin = 0
+            zmax = 255
+        # Maximum and minumum range for HLS channels(Need to be verified)
+        elif self.colorSpace == 6:
+            xmin = 0
+            xmax = 255
+            ymin = 0
+            ymax = 255
+            zmin = 0
+            zmax = 255
+        # Maximum and minumum range for HSV channels
+        elif self.colorSpace == 7:
+            xmin = 0
+            xmax = 180
+            ymin = 0
+            ymax = 255
+            zmin = 0
+            zmax = 255
+
+        self.c0 = input('Enter value of C0, the format should be (' + str(xmin) + '-' + str(xmax) + ','
+        + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
+        self.c1 = input('Enter value of C1, the format should be (' + str(xmin) + '-' + str(xmax) + ','
+        + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
+        self.c2 = input('Enter value of C2, the format should be (' + str(xmin) + '-' + str(xmax) + ','
+        + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
 
     # Asks the user for the number of bits
     def getNumberOfBits(self):
