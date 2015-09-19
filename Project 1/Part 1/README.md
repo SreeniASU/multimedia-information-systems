@@ -1,5 +1,7 @@
 Before running the executable, install the dependencies with
 
+To run the executable, execute
+
 ```
-$ pip install -r requirements.txt
+$ python colormapcreation.py
 ```
