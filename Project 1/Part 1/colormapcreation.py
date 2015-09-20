@@ -14,96 +14,10 @@ import cv2
 import numpy as np
 import math
 
-import colors2image as c2i
+from colormap2image import colormap2image
 
 # Class which handles colormap creation
-class ColorMapCreator:
-    # Asks the user for the color space to be used
-    def getColorSpace(self):
-        print('Available color spaces  \n')
-        print('*****************************\n')
-        print(' 1. RGB \n 2. XYZ \n 3. Lab \n 4. Luv \n 5.YCrCb \n 6. HLS \n 7. HSV \n')
-        self.colorSpace = int( input('Enter colorspace (1-7) to be used: '))
-        while self.colorSpace < 1  or self.colorSpace >7:
-            self.colorSpace = input('Invalid colorspace chosen, enter one between (1-7): ')
-
-    # Asks the user for the three color instances from the color space
-    # c0,c1,c2 will be stored as tuples
-    def getColorInstance(self):
-        xmin = 0
-        xmax = 255
-        ymin = 0
-        ymax = 255
-        zmin = 0
-        zmax = 255
-        # Maximum and minimum range for R, G and B channels
-        if self.colorSpace == 1:
-            xmin = 0
-            xmax = 255
-            ymin = 0
-            ymax = 255
-            zmin = 0
-            zmax = 255
-        # Maximum and minimumum range for X, Y and Z channels. This needs to be verified once again
-        elif self.colorSpace == 2:
-            xmin = 0
-            xmax = 242
-            ymin = 0
-            ymax = 255
-            zmin = 0
-            zmax = 277
-        # Maximuum and minimum range for L*a*b* channels
-        elif self.colorSpace == 3:
-            xmin = 1
-            xmax = 255
-            ymin = 1
-            ymax = 255
-            zmin = 1
-            zmax = 255
-        # Maximum and minimum range for Luv channels
-        elif self.colorSpace == 4:
-            xmin = 0
-            xmax = 255
-            ymin = 0
-            ymax = 255
-            zmin = 0
-            zmax = 255
-        # Maximum and minimum range for YCrCb channels
-        elif self.colorSpace == 5:
-            xmin = 0
-            xmax = 255
-            ymin = 0
-            ymax = 255
-            zmin = 0
-            zmax = 255
-        # Maximum and minumum range for HLS channels(Need to be verified)
-        elif self.colorSpace == 6:
-            xmin = 0
-            xmax = 255
-            ymin = 0
-            ymax = 255
-            zmin = 0
-            zmax = 255
-        # Maximum and minumum range for HSV channels
-        elif self.colorSpace == 7:
-            xmin = 0
-            xmax = 180
-            ymin = 0
-            ymax = 255
-            zmin = 0
-            zmax = 255
-
-        self.c0 = input('Enter value of C0, the format should be (' + str(xmin) + '-' + str(xmax) + ','
-        + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
-        self.c1 = input('Enter value of C1, the format should be (' + str(xmin) + '-' + str(xmax) + ','
-        + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
-        self.c2 = input('Enter value of C2, the format should be (' + str(xmin) + '-' + str(xmax) + ','
-        + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
-
-    # Asks the user for the number of bits
-    def getNumberOfBits(self):
-        self.numberOfBits = input('Enter number of bits (from 2 to 8): ')
-
+def createColorMap(c0, c1, c2, numberOfBits):
     # Creates the colormap based on the user inputs
     # The algorithm for the method goes like this
     # ==================================================
@@ -121,41 +35,112 @@ class ColorMapCreator:
     # (5,5,5) can be mapped to [+0.5,+1]
     # ===============================================
 
-    def GetColorMap(self):
-        numberOfColors = int(math.pow(2, self.numberOfBits))
-        print('A colormap with '+ str(numberOfColors) + ' colors will be created \n')
-        colors  = [];
-        diff1 = np.subtract(self.c1 ,self.c0)
-        numberOfSplits = int(numberOfColors/2);
-        for i in xrange(0,numberOfSplits):
-            colors.append(tuple(np.add( self.c0, tuple([int(math.ceil(float(i)/float(numberOfSplits)*float(x))) for x in diff1]))))
-        diff2 = np.subtract(self.c2, self.c1)
-        for i in xrange(0,numberOfSplits-1):
-            colors.append(tuple(np.add( self.c1, tuple([int(math.ceil(float(i)/float(numberOfSplits)*float(x))) for x in diff2]))))
-        colors.append(self.c2)
-        return colors
+    numberOfColors = int(math.pow(2, numberOfBits))
+    print('A colormap with '+ str(numberOfColors) + ' colors will be created \n')
+    colors  = [];
+    diff1 = np.subtract(c1, c0)
+    numberOfSplits = int(numberOfColors/2);
+    for i in xrange(0,numberOfSplits):
+        colors.append(tuple(np.add( c0, tuple([int(math.ceil(float(i)/float(numberOfSplits)*float(x))) for x in diff1]))))
+    diff2 = np.subtract(c2, c1)
+    for i in xrange(0,numberOfSplits-1):
+        colors.append(tuple(np.add( c1, tuple([int(math.ceil(float(i)/float(numberOfSplits)*float(x))) for x in diff2]))))
+    colors.append(c2)
+    return colors
 
-    def __init__(self):
-        self.getColorSpace()
-        self.getColorInstance()
-        self.getNumberOfBits()
+if __name__ == '__main__':
+    # Asks the user for the color space to be used
+    print('Available color spaces  \n')
+    print('*****************************\n')
+    print(' 1. RGB \n 2. XYZ \n 3. Lab \n 4. Luv \n 5.YCrCb \n 6. HLS \n 7. HSV \n')
+    colorSpace = int( input('Enter colorspace (1-7) to be used: '))
+    while colorSpace < 1  or colorSpace >7:
+        colorSpace = input('Invalid colorspace chosen, enter one between (1-7): ')
+    colorSpace = input('Enter colorspace (1-7) to be used: ')
 
-colorMapCreatorObj = ColorMapCreator()
-colorMap = colorMapCreatorObj.GetColorMap()
+    xmin = 0
+    xmax = 255
+    ymin = 0
+    ymax = 255
+    zmin = 0
+    zmax = 255
+    # Maximum and minimum range for R, G and B channels
+    if colorSpace == 1:
+        xmin = 0
+        xmax = 255
+        ymin = 0
+        ymax = 255
+        zmin = 0
+        zmax = 255
+    # Maximum and minimumum range for X, Y and Z channels. This needs to be verified once again
+    elif colorSpace == 2:
+        xmin = 0
+        xmax = 242
+        ymin = 0
+        ymax = 255
+        zmin = 0
+        zmax = 277
+    # Maximuum and minimum range for L*a*b* channels
+    elif colorSpace == 3:
+        xmin = 1
+        xmax = 255
+        ymin = 1
+        ymax = 255
+        zmin = 1
+        zmax = 255
+    # Maximum and minimum range for Luv channels
+    elif colorSpace == 4:
+        xmin = 0
+        xmax = 255
+        ymin = 0
+        ymax = 255
+        zmin = 0
+        zmax = 255
+    # Maximum and minimum range for YCrCb channels
+    elif colorSpace == 5:
+        xmin = 0
+        xmax = 255
+        ymin = 0
+        ymax = 255
+        zmin = 0
+        zmax = 255
+    # Maximum and minumum range for HLS channels(Need to be verified)
+    elif colorSpace == 6:
+        xmin = 0
+        xmax = 255
+        ymin = 0
+        ymax = 255
+        zmin = 0
+        zmax = 255
+    # Maximum and minumum range for HSV channels
+    elif colorSpace == 7:
+        xmin = 0
+        xmax = 180
+        ymin = 0
+        ymax = 255
+        zmin = 0
+        zmax = 255
 
-print('Writing the colormap to text file')
-file = open('colormaptextfile.txt','w')
-file.write(str(colorMap))
-file.close()
+    c0 = input('Enter value of C0, the format should be (' + str(xmin) + '-' + str(xmax) + ','
+    + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
+    c1 = input('Enter value of C1, the format should be (' + str(xmin) + '-' + str(xmax) + ','
+    + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
+    c2 = input('Enter value of C2, the format should be (' + str(xmin) + '-' + str(xmax) + ','
+    + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
 
-print('Printing the colormap to a jpg file')
-c2i.colors2image(colorMap, colorMapCreatorObj.colorSpace)
+    # Asks the user for the number of bits
+    numberOfBits = input('Enter number of bits (from 2 to 8): ')
 
+    colorMap = createColorMap(c0, c1, c2, numberOfBits)
 
+    print('Writing the colormap to text file')
+    file = open('colormaptextfile.txt','w')
+    file.write(str(colorMap))
+    file.close()
 
-
-
-
-
-
-
+    print('Printing the colormap to a jpg file')
+    im_color = colormap2image(colorMap, colorSpace)
+    cv2.imwrite('colormap.jpg', im_color)
+    cv2.imshow("Pseudo Colored Image", im_color)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

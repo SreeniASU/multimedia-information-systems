@@ -3,14 +3,11 @@
 import cv2
 import numpy as np
 
-def colors2image(colormap, colorspace) :
+def colormap2image(colormap, colorspace) :
 
     lut = colormap2lut(colormap)
     im_color = applyCustomColorMap(lut, colorspace)
-    cv2.imwrite('colormap.jpg', im_color)
-    cv2.imshow("Pseudo Colored Image", im_color)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    return im_color
 
 def colormap2lut(colormap) :
     
@@ -30,8 +27,6 @@ def applyCustomColorMap(lut, colorspace) :
     depth = np.ones(3, dtype=np.uint8)
 
     im_color = cv2.LUT(grid * depth, lut)
-
-    print cv2.cv
 
     if colorspace == 'RGB':
         # Convert to BGR:
