@@ -12,6 +12,7 @@ def colormap2image(colormap, colorspace) :
 def colormap2lut(colormap) :
     
     times = 256 / len(colormap)
+    # This may cause issues with Lab type
     lut = np.zeros((256, 1, 3), dtype=np.uint8)
     for i in xrange(0, len(colormap)):
         for j in xrange(0, times):
@@ -37,7 +38,9 @@ def applyCustomColorMap(lut, colorspace) :
     elif colorspace == 'XYZ':
         im_color = cv2.cvtColor(im_color, cv2.cv.CV_XYZ2BGR)
     elif colorspace == 'Lab':
-        im_color = cv2.cvtColor(im_color, cv2.cv.CV_Lab2BGR)
+        # Lab needs to be converted to 32 bit float for conversion to work
+        # This may have affects on the above logic for creating the image
+        im_color = cv2.cvtColor(im_color.astype(np.float32), cv2.cv.CV_Lab2BGR)
     elif colorspace == 'Luv':
         im_color = cv2.cvtColor(im_color, cv2.cv.CV_Luv2BGR)
     elif colorspace == 'YCrCb':
@@ -55,4 +58,4 @@ if __name__  == '__main__' :
     file = open('colormaptextfile.txt', 'r')
     colormap = eval(file.read())
 
-    colormap2image(colormap, 'RGB');
+    colormap2image(colormap, 'Lab');

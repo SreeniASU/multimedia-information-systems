@@ -81,12 +81,12 @@ if __name__ == '__main__':
         zmax = 277
     # Maximuum and minimum range for L*a*b* channels
     elif colorSpace == 3:
-        xmin = 1
-        xmax = 255
-        ymin = 1
-        ymax = 255
-        zmin = 1
-        zmax = 255
+        xmin = 0
+        xmax = 100
+        ymin = -128
+        ymax = 127
+        zmin = -128
+        zmax = 127
     # Maximum and minimum range for Luv channels
     elif colorSpace == 4:
         xmin = 0
