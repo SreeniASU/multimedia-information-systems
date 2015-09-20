@@ -30,7 +30,10 @@ def applyCustomColorMap(lut, colorspace) :
 
     if colorspace == 'RGB':
         # Convert to BGR:
-        cv2.mixChannels(im_color, im_color, [0, 2, 1, 1, 2, 0])
+        red = np.zeros((256, 256, 1), dtype=np.uint8)
+        red = np.copy(im_color[:, :, 2])
+        im_color[:, :, 2] = im_color[:, :, 0]
+        im_color[:, :, 0] = red
     elif colorspace == 'XYZ':
         im_color = cv2.cvtColor(im_color, cv2.cv.CV_XYZ2BGR)
     elif colorspace == 'Lab':
@@ -52,4 +55,4 @@ if __name__  == '__main__' :
     file = open('colormaptextfile.txt', 'r')
     colormap = eval(file.read())
 
-    colors2image(colormap, 'RGB');
+    colormap2image(colormap, 'RGB');
