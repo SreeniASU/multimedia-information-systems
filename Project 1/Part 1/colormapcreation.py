@@ -1,4 +1,3 @@
-<<<<<<< 5ccaca8b9e285aef13ea62c0cdcc13da768000f1
 __author__ = 'Team 6'
 # CSE 408/598 Project 1- Part 2
 #======================================
@@ -57,7 +56,6 @@ if __name__ == '__main__':
     colorSpace = int( input('Enter colorspace (1-7) to be used: '))
     while colorSpace < 1  or colorSpace >7:
         colorSpace = input('Invalid colorspace chosen, enter one between (1-7): ')
-    colorSpace = input('Enter colorspace (1-7) to be used: ')
 
     xmin = 0
     xmax = 255
@@ -123,11 +121,11 @@ if __name__ == '__main__':
         zmax = 255
 
     c0 = input('Enter value of C0, the format should be (' + str(xmin) + '-' + str(xmax) + ','
-    + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
+            + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + '): ' )
     c1 = input('Enter value of C1, the format should be (' + str(xmin) + '-' + str(xmax) + ','
-    + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
+            + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + '): ' )
     c2 = input('Enter value of C2, the format should be (' + str(xmin) + '-' + str(xmax) + ','
-    + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + ')' )
+            + str(ymin) + '-' + str(ymax) + ',' + str(zmin) + '-' + str(zmax) + '): ' )
 
     # Asks the user for the number of bits
     numberOfBits = input('Enter number of bits (from 2 to 8): ')
