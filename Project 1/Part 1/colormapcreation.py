@@ -1,3 +1,4 @@
+<<<<<<< 5ccaca8b9e285aef13ea62c0cdcc13da768000f1
 __author__ = 'Team 6'
 # CSE 408/598 Project 1- Part 2
 #======================================
@@ -130,6 +131,9 @@ if __name__ == '__main__':
 
     # Asks the user for the number of bits
     numberOfBits = input('Enter number of bits (from 2 to 8): ')
+
+    colorSpaceMap = { 1: 'RGB', 2: 'XYZ', 3: 'Lab', 4: 'Luv', 5: 'YCrCb', 6: 'HLS', 7: 'HSV' }
+    colorSpace = colorSpaceMap[colorSpace]
 
     colorMap = createColorMap(c0, c1, c2, numberOfBits)
 
