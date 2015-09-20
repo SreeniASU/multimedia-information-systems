@@ -5,15 +5,19 @@ import numpy as np
 
 def colormap2image(colormap, colorspace) :
 
-    lut = colormap2lut(colormap)
+    lut = colormap2lut(colormap, colorspace)
     im_color = applyCustomColorMap(lut, colorspace)
     return im_color
 
-def colormap2lut(colormap) :
+def colormap2lut(colormap, colorspace) :
     
     times = 256 / len(colormap)
     # This may cause issues with Lab type
-    lut = np.zeros((256, 1, 3), dtype=np.uint8)
+    if colorspace == 'YCbCr' or colorspace == 'XYZ':
+        numbytes = np.float32
+    else:
+        numbytes = np.uint8
+    lut = np.zeros((256, 1, 3), dtype=numbytes)
     for i in xrange(0, len(colormap)):
         for j in xrange(0, times):
             lut[times*i+j][0] = colormap[i]

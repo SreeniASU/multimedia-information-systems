@@ -10,11 +10,12 @@ def test_creates_black_image():
     # Test that creating an all black color map produces an all black
     # image regardless of the color space
     blackColorMap = createColorMap((0, 0, 0), (0, 0, 0), (0, 0, 0), 2)
+    blackYCrCbColorMap = createColorMap((0, 128, 128), (0, 128, 128), (0, 128, 128), 2)
     assert (colormap2image(blackColorMap, 'RGB') == blackImage).all()
     assert (colormap2image(blackColorMap, 'XYZ') == blackImage).all()
     assert (colormap2image(blackColorMap, 'Lab') == blackImage).all()
     assert (colormap2image(blackColorMap, 'Luv') == blackImage).all()
-    assert (colormap2image(blackColorMap, 'YCrCb') == blackImage).all()
+    assert (colormap2image(blackYCrCbColorMap, 'YCrCb') == blackImage).all()
     assert (colormap2image(blackColorMap, 'HLS') == blackImage).all()
     assert (colormap2image(blackColorMap, 'HSV') == blackImage).all()
 
@@ -22,11 +23,12 @@ def test_creates_black_image_8_bits():
     # Test that creating an all black color map produces an all black
     # image regardless of the color space or bit
     blackColorMap = createColorMap((0, 0, 0), (0, 0, 0), (0, 0, 0), 8)
+    blackYCrCbColorMap = createColorMap((0, 128, 128), (0, 128, 128), (0, 128, 128), 8)
     assert (colormap2image(blackColorMap, 'RGB') == blackImage).all()
     assert (colormap2image(blackColorMap, 'XYZ') == blackImage).all()
     assert (colormap2image(blackColorMap, 'Lab') == blackImage).all()
     assert (colormap2image(blackColorMap, 'Luv') == blackImage).all()
-    assert (colormap2image(blackColorMap, 'YCrCb') == blackImage).all()
+    assert (colormap2image(blackYCrCbColorMap, 'YCrCb') == blackImage).all()
     assert (colormap2image(blackColorMap, 'HLS') == blackImage).all()
     assert (colormap2image(blackColorMap, 'HSV') == blackImage).all()
 
