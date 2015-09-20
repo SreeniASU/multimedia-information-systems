@@ -3,8 +3,8 @@ import os
 from colormapcreation import createColorMap
 from colormap2image import *
 
-blackImage = cv2.imread(os.path.realpath(os.path.join(os.path.dirname(__file__), 'data/black.jpg')))
-redImage = cv2.imread(os.path.realpath(os.path.join(os.path.dirname(__file__), 'data/red.jpg')))
+blackImage = cv2.imread(os.path.join(os.path.dirname(__file__), 'data/black.png'))
+redImage = cv2.imread(os.path.join(os.path.dirname(__file__), 'data/red.png'))
 
 def test_creates_black_image():
     # Test that creating an all black color map produces an all black
