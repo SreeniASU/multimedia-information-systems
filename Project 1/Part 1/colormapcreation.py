@@ -141,8 +141,13 @@ if __name__ == '__main__':
     file.close()
 
     print('Printing the colormap to a png file')
+    #XYZ colormap is being written in the file properly, but unable to display directly
+    #frin im_color. This minor change makes it work perfectly fine
     im_color = colormap2image(colorMap, colorSpace)
     cv2.imwrite('colormap.png', im_color)
-    cv2.imshow("Pseudo Colored Image", im_color)
+    img  = cv2.imread('colormap.png', cv2.IMREAD_UNCHANGED)
+    cv2.imshow('Pseudo colored image', img)
+    # For older version
+    #cv2.imshow("Pseudo Colored Image", im_color)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
