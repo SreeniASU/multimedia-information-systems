@@ -143,6 +143,9 @@ if __name__ == '__main__':
     print('Printing the colormap to a png file')
     im_color = colormap2image(colorMap, colorSpace)
     cv2.imwrite('colormap.png', im_color)
-    cv2.imshow("Pseudo Colored Image", im_color)
+    #cv2.imshow("Pseudo Colored Image", im_color)
+    #Reading the png file and displaying it works fine
+    img  = cv2.imread('colormap.png', cv2.IMREAD_UNCHANGED)
+    cv2.imshow('Pseudo colored image', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
