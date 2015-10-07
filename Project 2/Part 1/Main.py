@@ -35,31 +35,43 @@ def pc3(yFrameValues):
 
     return result
 
+def writeToFile(file, values,frameNum):
+    rows = len(values)
+    cols = len(values[0])
+    for i in range(rows):
+        for j in range(cols):
+            contents = "< f" + str(frameNum) + ",(" + str(i) + "," + str(j) + "), " + str(values[i][j]) + " >\n"
+            file.write(contents)
 
-rootDir = "/Users/jake/Projects/multimedia-information-systems/test/project1" #util.safeGetDirectory()
+rootDir = "/home/perry/Desktop/Project 2/multimedia-information-systems/Project 2/Part 1"#util.safeGetDirectory()
 allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
 videoForProcessing = "3.mp4" # util.getVideoFile(allFiles)
 x,y = util.getPixelRegion()
-encodingOption = 3 #util.getEncodingOption()
+encodingOption = "3"#util.getEncodingOption()
 
 videoName = rootDir + "/" + videoForProcessing
 video = cv2.VideoCapture(videoName)
 
+fileName = videoForProcessing.strip('.mp4') + "_" + encodingOption +".tpc"
+outputFile = open(fileName, 'w')
+frameNum = 0
 while(video.isOpened()):
     channels = 0
     ret,frame = video.read()
     if ret: #if video is still running...
+        frameNum += 1
         croppedFrame = frame[x:x+10, y:y+10]
         YCC_CroppedFrame = cv2.cvtColor(croppedFrame, cv2.COLOR_BGR2YCR_CB)
         yFrameValues = cv2.split(YCC_CroppedFrame)[0]
-        print yFrameValues
+        #print yFrameValues
 
-        if encodingOption == 1:
-            print pc1(yFrameValues)
-        elif encodingOption == 2:
-            print pc2(yFrameValues)
-        elif encodingOption == 3:
-            print pc3(yFrameValues)
+        if encodingOption == "1":
+            writeToFile(outputFile, pc1(yFrameValues), frameNum)
+        elif encodingOption == "2":
+            writeToFile(outputFile, pc2(yFrameValues), frameNum)
+        elif encodingOption == "3":
+            writeToFile(outputFile, pc3(yFrameValues), frameNum)
+            #print pc3(yFrameValues)
         elif encodingOption == 4:
             print pc4(yFrameValues)
 
