@@ -39,7 +39,8 @@ def pc4(yFrameValues):
     yFrameValues = yFrameValues.astype(float)
     result = np.zeros((10,10))
     print("Setting in initial values to ", yFrameValues[0,0], yFrameValues[0,1])
-    alpha1, alpha2 = .5
+    alpha1 = .5
+    alpha2 = .5
     for i in range(0,10):
         for j in range (0,10):
             s1 = yFrameValues[util.goBack(i,j,1,10)]
@@ -50,6 +51,7 @@ def pc4(yFrameValues):
             alpha2 = (s1 * s3 - s2^2)/(s3^2-s4*s2)
             alpha1 = 1.0- alpha2
             result[i][j] = abs(yFrameValues[i,j] - predicted)
+            print result
 
     return result
 
@@ -65,7 +67,7 @@ rootDir= "/home/rhode/multimedia-information-systems/Project 2/Part 1"
 allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
 videoForProcessing = "3.mp4" # util.getVideoFile(allFiles)
 x,y = util.getPixelRegion()
-encodingOption = "4"#util.getEncodingOption()
+encodingOption = "3"#util.getEncodingOption()
 
 videoName = rootDir + "/" + videoForProcessing
 video = cv2.VideoCapture(videoName)
@@ -90,9 +92,9 @@ while(video.isOpened()):
         elif encodingOption == "3":
             writeToFile(outputFile, pc3(yFrameValues), frameNum)
             #print pc3(yFrameValues)
-        elif encodingOption == 4:
+        elif encodingOption == "4":
             print pc4(yFrameValues)
-
+            writeToFile(outputFile, pc4(yFrameValues), frameNum)
 
     else:
         break
