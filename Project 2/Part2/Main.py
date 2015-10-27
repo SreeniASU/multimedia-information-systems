@@ -42,7 +42,7 @@ def pc4(yFrameValues):
 
     for i in range(0,10):
         for j in range (0,10):
-            if i+1 < 10 && j+1 < 10:
+            if i+1 < 10 and j+1 < 10:
                 result[i][j] = abs(yFrameValues[i+1, j+1] - lastValue )
                 lastValue = yFrameValues[i,j]
             else:
