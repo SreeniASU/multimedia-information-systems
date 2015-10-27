@@ -76,7 +76,7 @@ videoForProcessing = "3.mp4"
 option = util.getEncodingOption()
 x,y = util.getPixelRegion()
 
-fileName = videoForProcessing.strip('.mp4') + "_" + option + ".tpc"
+fileName = videoForProcessing.strip('.mp4') + "_" + option + ".spc"
 outputFile = open(fileName, 'w')
 
 #Get all the frames from the video
