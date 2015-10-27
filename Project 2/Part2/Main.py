@@ -1,4 +1,4 @@
-__author__ = 'Sreenivas'
+__author__ = 'Team 6'
 
 import Utility as util
 import cv2
@@ -12,41 +12,42 @@ def pc1(yFrameValues):
 def pc2(yFrameValues):
     yFrameValues = yFrameValues.astype(float)
     result = np.zeros((10,10))
-    print("Setting in initial value to ", yFrameValues[0,0])
-    lastValue = yFrameValues[0,0]
+    print("Setting in initial value to 0")
+    lastValue = 0
 
     for i in range(0,10):
         for j in range (0,10):
             result[i][j] = abs(yFrameValues[i,j] - lastValue)
             lastValue = yFrameValues[i,j]
-
+        lastValue = 0
     return result
 
 def pc3(yFrameValues):
     yFrameValues = yFrameValues.astype(float)
     result = np.zeros((10,10))
-    print("Setting in initial value to ", yFrameValues[0,0])
-    lastValue = yFrameValues[0,0]
+    print("Setting in initial value to 0")
+    lastValue = 0
 
     for i in range(0,10):
         for j in range (0,10):
             result[j][i] = abs(yFrameValues[j,i] - lastValue)
             lastValue = yFrameValues[j,i]
+        lastValue = 0;
     return result
 
 def pc4(yFrameValues):
     yFrameValues = yFrameValues.astype(float)
     result = np.zeros((10,10))
-    print("Setting an initial value to ", yFrameValues[0,0])
-    lastValue = yFrameValues[0,0]
+    print("Setting an initial value to 0")
+    lastValue = 0
 
     for i in range(0,10):
         for j in range (0,10):
-            if i+1 < 10 and j+1 < 10:
-                result[i][j] = abs(yFrameValues[i+1, j+1] - lastValue )
-                lastValue = yFrameValues[i,j]
+            result[i][j] = yFrameValues[i][j] - lastValue
+            if i-1>=0  and j-1 >=0:
+	            lastValue = yFrameValues[i-1][j-1]
             else:
-                result[i][j] = yFrameValues[i, j]
+                lastValue = 0
     return result
 
 
@@ -91,12 +92,18 @@ while(video.isOpened()):
         croppedFrame = frame[x:x+10, y:y+10]
         YCC_CroppedFrame = cv2.cvtColor(croppedFrame, cv2.COLOR_BGR2YCR_CB)
         yFrameValues = cv2.split(YCC_CroppedFrame)[0]
-
+        #print yFrameValues
+        #break
         if option == "1":
             writeToFile(outputFile, pc1(yFrameValues), frameNum)
         elif option == "2":
             writeToFile(outputFile, pc2(yFrameValues), frameNum)
+        elif option == "3":
+            writeToFile(outputFile, pc3(yFrameValues), frameNum)
+        elif option == "4":
+            writeToFile(outputFile, pc4(yFrameValues), frameNum)
+print "End of code"
 
-        framesList.append(croppedFrame)
+
 
 
