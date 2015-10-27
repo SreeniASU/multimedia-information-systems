@@ -45,7 +45,7 @@ def pc4(yFrameValues):
         for j in range (0,10):
             result[i][j] = yFrameValues[i][j] - lastValue
             if i-1>=0  and j-1 >=0:
-	            lastValue = yFrameValues[i-1][j-1]
+	        lastValue = yFrameValues[i-1][j-1]
             else:
                 lastValue = 0
     return result
