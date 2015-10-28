@@ -4,11 +4,18 @@ import numpy as np
 from os import listdir
 from os.path import isfile,join
 
-def minValue():
-	pass
-
-def maxValue():
-	pass
+def getOption():
+    while 1:
+        try:
+            option = input("Which quantization option would you like to use?\n" +
+                         "1: No quantization\n" +
+                         "2: Quantization into 2^m uniform bins\n>")
+            if option > 2:
+                print(str(option) + " is not a valid selection. Please make a different selection.\n")
+            else:
+                return option
+        except:
+            log(str(option) + " is not a valid input. Please try again.\n")
 
 def log (message):
     print(message)
@@ -29,7 +36,7 @@ def safeGetDirectory():
 		except:
 			log("Directory not found!")
 
-def getVideoFile(files):
+def getFile(files):
     showFiles(files)
     while 1:
         try:
@@ -42,63 +49,87 @@ def getVideoFile(files):
             log("File not found, please choose another file.")
 
 
-# m = 8
+def getErrors(content):
+    rows = len(content)
+    errors = []
+    for i in range(rows):
+        if content[i][0] != "{":
+            errors.append(float(content[i].split(",")[3].replace(">", "")))
+    return errors
 
 
-# rootDir = safeGetDirectory()
-rootDir = '/Users/jake/Projects/multimedia-information-systems/Project 2/Part 1'
+def getMValue():
+      while 1:
+        try:
+            option = input("Please enter an m value: ")
+            if option < 1:
+                print(str(option) + " is not a valid selection. Please make a different selection.\n")
+            else:
+                return option
+        except:
+            log(str(option) + " is not a valid input. Please try again.\n")
+
+def quantizeWithM(errors,m):
+    minError = min(errors)
+    maxError = max(errors)
+    bins = pow(2,m)
+    rangeError = maxError - minError
+    valuesPerBin = rangeError / bins
+
+    rows = len(errors)
+    for i in range(rows):
+        bottomBin = math.floor((errors[i] - minError) / valuesPerBin)
+        errors[i] = minError + (bottomBin + 0.5)*valuesPerBin
+
+    return errors
+
+def writeToFile(outputFile,content, errors):
+    rows = len(content)
+    j = 0
+    for i in range(rows):
+        if content[i][0] != "{":
+            error = content[i].split(",")[3]
+            beginning = content[i].split(error)[0]
+            content[i] = beginning + str(errors[j]) + " >"
+            j += 1
+
+        outputFile.write(content[i] + "\n")
+
+    return
+
+
+'''
+Main Method
+Prompts the user for an input file, a quantization option selection, and an m value.
+Uses these values to quantize the input files error into 2^m uniform bins.
+'''
+rootDir = safeGetDirectory()
 
 allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
 
-# input_file = getVideoFile(allFiles)
-input_file = "3_3.tpc"
+input_file = getFile(allFiles)
 
 fileName = rootDir + "/" + input_file
 
 with open(fileName,'r') as f:
 	content = f.readlines()
 
-rows = len(content)
-errors = []
-for i in range(rows):
-    if content[i][0] != "{":
-        errors.append(float(content[i].split(",")[3].replace(">", "")))
+errors = getErrors(content)
 
-minError = min(errors)
-maxError = max(errors)
-print(minError)
-print(maxError)
+option = getOption()
+m = getMValue()
 
-m = input("Please enter m: ")
-bins = pow(2,m)
+if option == 2:
+    errors = quantizeWithM(errors,m)
 
-rangeError = maxError - minError
-valuesPerBin = rangeError / bins
-
-rows = len(errors)
-for i in range(rows):
-    bottomBin = math.floor((errors[i] - minError) / valuesPerBin)
-    errors[i] = minError + (bottomBin + 0.5)*valuesPerBin
-
-
-rows = len(content)
-j = 0
 fileName = fileName.strip(".tpc") + "_" + str(m) + ".spq"
 outputFile = open(fileName, 'w')
-for i in range(rows):
-    if content[i][0] != "{":
-        error = content[i].split(",")[3]
-        beginning = content[i].split(error)[0]
-        content[i] = beginning + str(errors[j]) + " >"
-        j += 1
-
-    outputFile.write(content[i] + "\n")
-
+writeToFile(outputFile,content,errors)
 outputFile.close()
 
 
 '''
-
+USE THIS FOR DOCUMENTATION, DO NOT REMOVE YET
 iterate through error array
 
 for e in errors
