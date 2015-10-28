@@ -65,8 +65,10 @@ def pc5(outputFile,yFrameValues, frameNum):
                 result[i][j] = (1/3) * yFrameValues[i-1,j-1] + (1/3) * yFrameValues[i-1,j] + (1/3) * yFrameValues[i,j-1]
             elif i-1>=0:
                 result[i][j] = yFrameValues[i-1,j]
-            else:
+            elif j-1>=0:
                 result[i][j] = yFrameValues[i,j-1]
+            else:
+            	result[i][j] = yFrameValues[i,j]
             totalAbsoluteError = totalAbsoluteError + abs(result[i][j] - yFrameValues[i,j])
     writeToFile(outputFile, yFrameValues, frameNum, totalAbsoluteError)
 
