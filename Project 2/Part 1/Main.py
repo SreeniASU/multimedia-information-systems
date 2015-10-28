@@ -16,7 +16,7 @@ def pc2(yFrameValues):
 
     for i in range(0,10):
         for j in range (0,10):
-            result[i][j] = abs(yFrameValues[i,j] - lastValue)
+            result[i][j] = yFrameValues[i,j] - lastValue
             lastValue = yFrameValues[i,j]
 
     return result
@@ -31,7 +31,7 @@ def pc3(yFrameValues):
             previous_1 = yFrameValues[util.goBack(i,j,1,10)]
             previous_2 = yFrameValues[util.goBack(i,j,2,10)]
             predicted = (previous_1 + previous_2)/ 2
-            result[i][j] = abs(yFrameValues[i,j] - predicted)
+            result[i][j] = yFrameValues[i,j] - predicted
 
     return result
 
@@ -50,24 +50,33 @@ def pc4(yFrameValues):
             # predicted = (previous_1 + previous_2)/ 2
             alpha2 = (s1 * s3 - s2^2)/(s3^2-s4*s2)
             alpha1 = 1.0- alpha2
-            result[i][j] = abs(yFrameValues[i,j] - predicted)
+            result[i][j] = yFrameValues[i,j] - predicted
             print result
 
     return result
 
-def writeToFile(file, values,frameNum):
+def writeToFile(file, values,frameNum,initialValue,initialValue2):
     rows = len(values)
     cols = len(values[0])
+
+    if (initialValue2):
+        # file.write(str("{" + initialValue + "," + intialValue2 + "}") + "\n")
+        file.write("{" + str(initialValue) + "," + str(initialValue2) + "}" + "\n")
+    else:
+        # file.write(str("{" + initialValue + "}") + "\n")
+        file.write("{" + str(initialValue) + "}" + "\n")
+
+
     for i in range(rows):
         for j in range(cols):
             contents = "< f" + str(frameNum) + ",(" + str(i) + "," + str(j) + "), " + str(values[i][j]) + " >\n"
             file.write(contents)
-rootDir= "/home/rhode/multimedia-information-systems/Project 2/Part 1"
 # rootDir = "/home/perry/Desktop/Project 2/multimedia-information-systems/Project 2/Part 1"#util.safeGetDirectory()
+rootDir = util.safeGetDirectory()
 allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-videoForProcessing = "3.mp4" # util.getVideoFile(allFiles)
+videoForProcessing = util.getVideoFile(allFiles)
 x,y = util.getPixelRegion()
-encodingOption = "3"#util.getEncodingOption()
+encodingOption = util.getEncodingOption()
 
 videoName = rootDir + "/" + videoForProcessing
 video = cv2.VideoCapture(videoName)
@@ -86,15 +95,15 @@ while(video.isOpened()):
         #print yFrameValues
 
         if encodingOption == "1":
-            writeToFile(outputFile, pc1(yFrameValues), frameNum)
+            writeToFile(outputFile, pc1(yFrameValues), frameNum,yFrameValues[0,0])
         elif encodingOption == "2":
-            writeToFile(outputFile, pc2(yFrameValues), frameNum)
+            writeToFile(outputFile, pc2(yFrameValues), frameNum,yFrameValues[0,0])
         elif encodingOption == "3":
-            writeToFile(outputFile, pc3(yFrameValues), frameNum)
+            writeToFile(outputFile, pc3(yFrameValues), frameNum,yFrameValues[0,0],yFrameValues[0,1])
             #print pc3(yFrameValues)
         elif encodingOption == "4":
             print pc4(yFrameValues)
-            writeToFile(outputFile, pc4(yFrameValues), frameNum)
+            writeToFile(outputFile, pc4(yFrameValues), frameNum,yFrameValues[0,0])
 
     else:
         break
