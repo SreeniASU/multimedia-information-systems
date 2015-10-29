@@ -8,18 +8,18 @@ import math
 
 
 def pc1 (yFrameValues):
-return yFrameValues
+    return yFrameValues
 
 def pc2(yFrameValues,t1):
     yFrameValues = yFrameValues.astype(float)
     result = np.zeros((10,10))
-    print("Setting in initial value to ", yFrameValues[0,0])
-    lastValue = t1#yFrameValues[0,0]
+    #print("Setting in initial value to ", yFrameValues[0,0])
 
     for i in range(0,10):
         for j in range (0,10):
-            result[i][j] = abs(yFrameValues[i,j] - lastValue)
-            lastValue = yFrameValues[i,j]
+            #print("yFrameValues[" + str(i) + "][" + str(j) + "]: " + str(yFrameValues[i][j]))
+            #print("t1[" + str(i) + "][" + str(j) + "]: " + str(t1[i][j]))
+            result[i][j] = yFrameValues[i][j] - t1[i][j]
 
     return result
 
@@ -30,10 +30,10 @@ def pc3(yFrameValues,t1,t2):
 
     for i in range(0,10):
         for j in range (0,10):
-            previous_1 = t1#yFrameValues[util.goBack(i,j,1,10)]
-            previous_2 = t2#yFrameValues[util.goBack(i,j,2,10)]
+            previous_1 = float(t1[i][j])#yFrameValues[util.goBack(i,j,1,10)]
+            previous_2 = float(t2[i][j])#yFrameValues[util.goBack(i,j,2,10)]
             predicted = (previous_1 + previous_2)/ 2
-            result[i][j] = abs(yFrameValues[i,j] - predicted)
+            result[i][j] = yFrameValues[i][j] - predicted
 
     return result
 
@@ -45,16 +45,25 @@ def pc4(yFrameValues,t1,t2,t3,t4):
     alpha2 = .5
     for i in range(0,10):
         for j in range (0,10):
-            s1 = t1#yFrameValues[util.goBack(i,j,1,10)]
-            s2 = t2#yFrameValues[util.goBack(i,j,2,10)]
-            s3 = t3#yFrameValues[util.goBack(i,j,3,10)]
-            s4 = t4#yFrameValues[util.goBack(i,j,4,10)]
-            alpha2 = (s1 * s3 - s2**2)/(s3**2-s4*s2)
+            s1 = float(t1[i,j])#yFrameValues[util.goBack(i,j,1,10)]
+            s2 = float(t2[i,j])#yFrameValues[util.goBack(i,j,2,10)]
+            s3 = float(t3[i,j])#yFrameValues[util.goBack(i,j,3,10)]
+            s4 = float(t4[i,j])#yFrameValues[util.goBack(i,j,4,10)]
+            print("s1:", s1)
+            print("s2:", s2)
+            print("s3:", s3)
+            print("s4:", s4)
+            try:
+                alpha2 = (s1 * s3 - s2**2)/(s3**2-s4*s2)
+            except:
+                alpha2 = 0.5
+                pass
             alpha1 = 1.0- alpha2
             if alpha1 <0 or alpha1 >1 or math.isnan(alpha2):
-            alpha1 = .5
-            alpha2 = .5
-            # print " set to .5"
+                alpha1 = .5
+                alpha2 = .5
+                # print " set to .5"
+
             predicted = alpha1 * s1 + alpha2*s2
             # print(alpha1)
             result[i][j] = abs(yFrameValues[i,j] - predicted)
@@ -62,20 +71,30 @@ def pc4(yFrameValues,t1,t2,t3,t4):
 
     return result
 
-def writeToFile(file, values,frameNum):
+def writeToFile(file, values,frameNum,initialValue=False,initialValue2=False):
     rows = len(values)
     cols = len(values[0])
+    frameError = 0
+
+    if (initialValue2 and initialValue):
+        # file.write(str("{" + initialValue + "," + intialValue2 + "}") + "\n")
+        file.write("{" + str(initialValue) + "," + str(initialValue2) + "}" + "\n")
+    elif (initialValue):
+        # file.write(str("{" + initialValue + "}") + "\n")
+        file.write("{" + str(initialValue) + "}" + "\n")
     for i in range(rows):
         for j in range(cols):
-        contents = "< f" + str(frameNum) + ",(" + str(i) + "," + str(j) + "), " + str(values[i][j]) + " >\n"
-        file.write(contents)
+            contents = "< f" + str(frameNum) + ",(" + str(i) + "," + str(j) + "), " + str(values[i][j]) + " >\n"
+            frameError += abs(values[i][j])
+            file.write(contents)
 
-rootDir =os.path.join("E:","downloadsSSD","multimedia-information-systems-master","multimedia-information-systems-master","test","project1") # windows path
-# rootDir = "/home/perry/Desktop/Project 2/multimedia-information-systems/Project 2/Part 1"#util.safeGetDirectory()
+    return frameError
+
+rootDir = util.safeGetDirectory()
 allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-videoForProcessing = "3.mp4" # util.getVideoFile(allFiles)
+videoForProcessing = util.getVideoFile(allFiles)
 x,y = util.getPixelRegion()
-encodingOption = "4"#util.getEncodingOption()
+encodingOption = util.getEncodingOption()
 
 videoName = rootDir + "/" + videoForProcessing
 video = cv2.VideoCapture(videoName)
@@ -89,6 +108,7 @@ t2= []
 t3= []
 t4= []
 count =0
+totalError = 0
 while(video.isOpened()):
     count += 1
     channels = 0
@@ -109,50 +129,56 @@ while(video.isOpened()):
             # print "t1"
         elif frameNum ==2:#t2 == yFrameValues:
             # print "t2"
+            temp = yFrameValues
             yFrameValues = cv2.split(YCC_CroppedFrame)[0]
             t4 = yFrameValues
             t3 = yFrameValues
-            t2 = t1
-            t1 = yFrameValues
+            t2 = temp
+            t1 = temp
         elif frameNum ==3:#t3 == []:
+            temp = yFrameValues
             yFrameValues = cv2.split(YCC_CroppedFrame)[0]
             t4 = yFrameValues
             t3 = t2
             t2 = t1
             t1 = yFrameValues
         elif frameNum ==4:#t4 == []:
-            yFrameValues = cv2.split(YCC_CroppedFrame)[0]
             t4 = t3
             t3 = t2
             t2 = t1
             t1 = yFrameValues
-
+            yFrameValues = cv2.split(YCC_CroppedFrame)[0]
         else:
             t4 = t3
             t3 = t2
             t2 = t1
             t1 = yFrameValues
-        yFrameValues = cv2.split(YCC_CroppedFrame)[0]
+            yFrameValues = cv2.split(YCC_CroppedFrame)[0]
 
 
-    '''
         if encodingOption == "1":
             writeToFile(outputFile, pc1(yFrameValues), frameNum)
         elif encodingOption == "2":
-            writeToFile(outputFile, pc2(yFrameValues,t1), frameNum)
+            if frameNum == 1:
+                outputFile.write("{" + str(yFrameValues) + "}\n")
+            print("yFrameValues:", yFrameValues)
+            print("t1:", t1)
+            totalError += writeToFile(outputFile, pc2(yFrameValues,t1), frameNum)
         elif encodingOption == "3":
-            writeToFile(outputFile, pc3(yFrameValues,t1,t2), frameNum)
+            if frameNum == 1 or frameNum == 2:
+                outputFile.write("{" + str(yFrameValues) + "}\n")
+            totalError += writeToFile(outputFile, pc3(yFrameValues,t1,t2), frameNum)
             #print pc3(yFrameValues)
         elif encodingOption == "4":
-            # print pc4(yFrameValues)
-            writeToFile(outputFile, pc4(yFrameValues,t1,t2,t3,t4), frameNum)
+            #print pc4(yFrameValues)
+            if frameNum == 1 or frameNum == 2 or frameNum == 3 or frameNum == 4:
+                outputFile.write("{" + str(yFrameValues) + "}\n")
+            totalError += writeToFile(outputFile, pc4(yFrameValues,t1,t2,t3,t4), frameNum)
             #print yFrameValues
-
-
-
-
-
     else:
         break
 
-'''
+if encodingOption == "1":
+    print("No error since no predictive coding was done")
+else:
+    print("Total error is:" + str(totalError))
