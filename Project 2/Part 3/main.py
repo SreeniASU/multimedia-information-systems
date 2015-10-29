@@ -10,15 +10,16 @@ def getOption():
             option = input("Which quantization option would you like to use?\n" +
                          "1: No quantization\n" +
                          "2: Quantization into 2^m uniform bins\n>")
-            if option > 2:
+            if option > 2 or option < 1:
                 print(str(option) + " is not a valid selection. Please make a different selection.\n")
             else:
-                return option
+                log("Option: " + str(math.floor(option)) + " selected.")
+                return math.floor(option)
         except:
             log(str(option) + " is not a valid input. Please try again.\n")
 
 def log (message):
-    print(message)
+    print("\n" + message)
 
 def showFiles(files):
 	print('======= List of Files =======')
@@ -117,14 +118,18 @@ with open(fileName,'r') as f:
 errors = getErrors(content)
 
 option = getOption()
-m = getMValue()
 
 if option == 2:
+    m = getMValue()
     errors = quantizeWithM(errors,m)
+    fileName = fileName.strip(".tpc") + "_" + str(m) + ".spq"
 
-fileName = fileName.strip(".tpc") + "_" + str(m) + ".spq"
+elif option == 1:
+    fileName = fileName.strip(".tpc") + "_0.spq"
+
 outputFile = open(fileName, 'w')
 writeToFile(outputFile,content,errors)
+log(fileName.strip(rootDir) + " created in location " + rootDir)
 outputFile.close()
 
 
