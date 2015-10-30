@@ -1,7 +1,52 @@
+from decimal import *
+#library used to prevent rounding in large float numbers
+
 #WHATS MISSING: 
 # - Figure out how to get the probabilities for the symbols
 
+getcontext().prec = 500 #precision of the floating point numbers
+
 terminator = "$" #value that indicates end of string
+
+def updateString(string):
+	#adds the terminator character if not present
+	length = len(string)
+
+	if (string[length - 1] != terminator):
+		string += terminator
+		length += 1
+
+	return string
+
+def createDictionary(string):
+	dictionary = {}
+
+	len_str = len(string)
+
+	for char in string:
+		#counts how many times each symbol appears on the
+		#string and adds this information to 'dictionary'
+		try:
+			dictionary[char] += 1
+		except KeyError:
+			dictionary[char] = 1
+
+	# len_dic = len(dictionary)
+	# print len_dic
+
+	low = 0
+	for char in dictionary:
+		#modifies the format of the dictionary such that now
+		#its value for each char is an array containing the 
+		#interval '[low,high)' for its probability
+		symbol_count = dictionary[char]
+		probability = Decimal(str(symbol_count/Decimal(str(len_str))))
+		dictionary[char] = [low,low + probability]
+		# low += Decimal(str(symbol_count/float(len_str)))
+		low += Decimal(symbol_count/Decimal(len_str))
+
+	return dictionary
+
 
 def floatBinToDecimal(bin):
 	#converts a floating point binary to a decimal number
@@ -10,7 +55,8 @@ def floatBinToDecimal(bin):
 	n = 0
 
 	for i in range(0,len(bin)): 
-		n += (int(bin[i]))/float(2**(i + 1))
+		# n += Decimal( str( int(bin[i])/Decimal( float(2**(i + 1)) ) ) )
+		n += Decimal( int(bin[i])/Decimal(2**(i + 1)) )  
 
 
 	return n
@@ -25,10 +71,28 @@ def frequencyInterval(string,dictionary):
 	i = 0
 	char = string[i]
 	while (not terminate):
-		range = high - low
+		# print 'char: ' + char
+		rng = high - low
+		# print "char,low,high: " + char + ',' + str(dictionary[char][0]) + ',' + str(dictionary[char][1])
+		# print "high,low,range: " + str(high) + ',' + str(low) + ',' + str(rng)
 
-		high = dictionary[char][1] * range + low
-		low = dictionary[char][0] * range + low
+		# if (char == 'o'):
+			# if (low == 0.255645751953125): 
+				# print "EQUALS!!"
+
+		"""if (low == 0.25537109375):
+			print dictionary[char][0]
+			print rng
+			print low
+			print 'HIGH!!!'
+			print dictionary[char][0] * rng + low
+			print "range: "
+			print rng
+			print"""
+
+		high = dictionary[char][1] * rng + low
+
+		low = dictionary[char][0] * rng + low
 
 		if (char == terminator):
 			"""if char is the terminator, there is no need to execute
@@ -39,6 +103,16 @@ def frequencyInterval(string,dictionary):
 		i += 1
 		char = string[i]
 		
+	"""if (low == high):
+		lst = [int(str(low)[i]) for i in range(2,len(str(low)))]
+		lst.pop()
+		nstr = "0."
+		for i in lst: nstr += str(i)
+		low = float(nstr)"""
+
+	# if (low == high):
+		# print 'EQUALS!!!'
+
 	return low,high
 
 def arithmetic_encode(frequency_interval):
@@ -86,13 +160,22 @@ def arithmetic_decode(bin_code,dictionary):
 
 	return decoded_string
 
-string = 'CAEE$'
+string = 'CAEE'
+string = updateString(string)
+dictionary = createDictionary(string)
+
+# print dictionary
+
+# string = 'CAEE$'
 # string = '210$'
 # dictionary = {'2':[0,0.2],'1':[0.2,0.6],'0':[0.6,0.9],terminator:[0.9,1]}
-dictionary = {'A':[0,0.2],'B':[0.2,0.3],'C':[0.3,0.5],'D':[0.5,0.55],'E':[0.55,0.85],'F':[0.85,0.9],terminator:[0.9,1]}
+# dictionary = {'A':[0,0.2],'B':[0.2,0.3],'C':[0.3,0.5],'D':[0.5,0.55],'E':[0.55,0.85],'F':[0.85,0.9],terminator:[0.9,1]}
+
 
 #first, the final frequency interval is calculated for the given string
 frequency_interval = frequencyInterval(string,dictionary)
+
+print "Frequency interval: " + str(frequency_interval)
 
 code = arithmetic_encode(frequency_interval)
 
