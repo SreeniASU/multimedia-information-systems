@@ -30,7 +30,7 @@ def showFiles(files):
 def safeGetDirectory():
 	while 1:
 		try:
-			rootDir = raw_input('Please enter the path where video files are located: ')
+			rootDir = raw_input('Please enter the path where files are located: ')
 			validate = raw_input("Directory set to: " + rootDir + " is this okay? Y/N    ")
 			if(validate == 'Y' or validate == 'y'):
 				return rootDir
@@ -122,10 +122,16 @@ option = getOption()
 if option == 2:
     m = getMValue()
     errors = quantizeWithM(errors,m)
-    fileName = fileName.strip(".tpc") + "_" + str(m) + ".spq"
+    if "tpc" in fileName:
+        fileName = fileName.strip(".tpc") + "_" + str(m) + ".tpq"
+    elif "spc" in fileName:
+        fileName = fileName.strip(".spc") + "_" + str(m) + ".spq"
 
 elif option == 1:
-    fileName = fileName.strip(".tpc") + "_0.spq"
+    if "tpc" in fileName:
+        fileName = fileName.strip(".tpc") + "_" + str(m) + ".tpq"
+    elif "spc" in fileName:
+        fileName = fileName.strip(".spc") + "_" + str(m) + ".spq"
 
 outputFile = open(fileName, 'w')
 writeToFile(outputFile,content,errors)
