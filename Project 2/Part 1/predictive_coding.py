@@ -48,16 +48,16 @@ def pc4(yFrameValues,t1,t2,t3,t4):
     alpha2 = .5
     for i in range(0,10):
         for j in range (0,10):
-            s1 = float(t1[i,j])#yFrameValues[util.goBack(i,j,1,10)]
-            s2 = float(t2[i,j])#yFrameValues[util.goBack(i,j,2,10)]
-            s3 = float(t3[i,j])#yFrameValues[util.goBack(i,j,3,10)]
-            s4 = float(t4[i,j])#yFrameValues[util.goBack(i,j,4,10)]
-            print("s1:", s1)
-            print("s2:", s2)
-            print("s3:", s3)
-            print("s4:", s4)
+            s1 = float(t1[i][j])#yFrameValues[util.goBack(i,j,1,10)]
+            s2 = float(t2[i][j])#yFrameValues[util.goBack(i,j,2,10)]
+            s3 = float(t3[i][j])#yFrameValues[util.goBack(i,j,3,10)]
+            s4 = float(t4[i][j])#yFrameValues[util.goBack(i,j,4,10)]
+            # print("s1:", s1)
+            # print("s2:", s2)
+            # print("s3:", s3)
+            # print("s4:", s4)
             try:
-                alpha2 = (s1 * s3 - s2**2)/(s3**2-s4*s2)
+                alpha2 = float((s1 * s3 - s2**2)/(s3**2-s4*s2))
             except:
                 alpha2 = 0.5
                 pass
@@ -67,9 +67,9 @@ def pc4(yFrameValues,t1,t2,t3,t4):
                 alpha2 = .5
                 # print " set to .5"
 
-            predicted = alpha1 * s1 + alpha2*s2
+            predicted = float(alpha1 * s1 + alpha2*s2)
             # print(alpha1)
-            result[i][j] = abs(yFrameValues[i,j] - predicted)
+            result[i][j] = (yFrameValues[i][j] - predicted)
             # print result
 
     return result
@@ -145,23 +145,24 @@ if __name__ == '__main__':
                 # print "t2"
                 temp = yFrameValues
                 yFrameValues = cv2.split(YCC_CroppedFrame)[0]
-                t4 = yFrameValues
-                t3 = yFrameValues
+                t4 = temp
+                t3 = temp
                 t2 = temp
                 t1 = temp
             elif frameNum ==3:#t3 == []:
                 temp = yFrameValues
                 yFrameValues = cv2.split(YCC_CroppedFrame)[0]
-                t4 = yFrameValues
+                # t4 = yFrameValues
                 t3 = t2
                 t2 = t1
-                t1 = yFrameValues
+                t1 = temp
             elif frameNum ==4:#t4 == []:
+                temp = yFrameValues
+                yFrameValues = cv2.split(YCC_CroppedFrame)[0]
                 t4 = t3
                 t3 = t2
                 t2 = t1
-                t1 = yFrameValues
-                yFrameValues = cv2.split(YCC_CroppedFrame)[0]
+                t1 = temp
             else:
                 t4 = t3
                 t3 = t2
