@@ -3,6 +3,7 @@ __author__ = 'Team 6'
 import Utility as util
 import cv2
 import numpy as np
+import time
 from os import listdir
 from os.path import isfile,join
 
@@ -13,16 +14,18 @@ def pc1(outputFile,yFrameValues, frameNum):
 
 def pc2(outputFile,yFrameValues, frameNum):
     totalAbsoluteError = 0
+
     yFrameValues = yFrameValues.astype(float)
     result = np.zeros((10,10))
+    previousValue = 0
 
     for i in range(0,10):
         for j in range (0,10):
             if j-1>=0:
-                result[i][j] = yFrameValues[i,j-1]
+                result[i][j] = yFrameValues[i,j] - yFrameValues[i,j-1]
+                totalAbsoluteError = totalAbsoluteError + abs(result[i][j])
             else:
                 result[i][j] = yFrameValues[i,j]
-            totalAbsoluteError = totalAbsoluteError + abs(result[i][j] - yFrameValues[i,j])
     writeToFile(outputFile, result, frameNum, totalAbsoluteError)
 
 
@@ -34,10 +37,10 @@ def pc3(outputFile,yFrameValues, frameNum):
     for i in range(0,10):
         for j in range (0,10):
             if i-1>=0:
-                result[i][j] = yFrameValues[i-1,j]
+                result[i][j] = yFrameValues[i,j] - yFrameValues[i-1,j]
+                totalAbsoluteError = totalAbsoluteError + abs(result[i][j])
             else:
                 result[i][j] = yFrameValues[i,j]
-            totalAbsoluteError = totalAbsoluteError + abs(result[i][j] - yFrameValues[i,j])
     writeToFile(outputFile, result, frameNum, totalAbsoluteError)
 
 def pc4(outputFile,yFrameValues, frameNum):
@@ -45,14 +48,13 @@ def pc4(outputFile,yFrameValues, frameNum):
     yFrameValues = yFrameValues.astype(float)
     result = np.zeros((10,10))
 
-
     for i in range(0,10):
         for j in range (0,10):
             if i-1>=0 and j-1>=0:
-                result[i][j] = yFrameValues[i-1,j-1]
+                result[i][j] = yFrameValues[i,j] - yFrameValues[i-1,j-1]
+                totalAbsoluteError  = totalAbsoluteError  + abs(result[i][j])
             else:
-	            result[i][j] = yFrameValues[i,j]
-            totalAbsoluteError  = totalAbsoluteError  + abs(result[i][j] - yFrameValues[i,j])
+                result[i][j] = yFrameValues[i,j]
     writeToFile(outputFile, result, frameNum, totalAbsoluteError)
 
 def pc5(outputFile,yFrameValues, frameNum):
@@ -62,15 +64,18 @@ def pc5(outputFile,yFrameValues, frameNum):
     for i in range(0,10):
         for j in range(0,10):
             if i-1>=0 and j-1>=0:
-                result[i][j] = (1/3) * yFrameValues[i-1,j-1] + (1/3) * yFrameValues[i-1,j] + (1/3) * yFrameValues[i,j-1]
+                result[i][j] = yFrameValues[i,j] - \
+                               ( yFrameValues[i-1,j-1]/float(3) +  yFrameValues[i-1,j]/float(3) +  yFrameValues[i,j-1]/float(3))
+                totalAbsoluteError  = totalAbsoluteError  + abs(result[i][j])
             elif i-1>=0:
-                result[i][j] = yFrameValues[i-1,j]
+                result[i][j] = yFrameValues[i,j] - yFrameValues[i-1,j]
+                totalAbsoluteError  = totalAbsoluteError  + abs(result[i][j])
             elif j-1>=0:
-                result[i][j] = yFrameValues[i,j-1]
+                result[i][j] = yFrameValues[i,j] - yFrameValues[i,j-1]
+                totalAbsoluteError  = totalAbsoluteError  + abs(result[i][j])
             else:
-            	result[i][j] = yFrameValues[i,j]
-            totalAbsoluteError = totalAbsoluteError + abs(result[i][j] - yFrameValues[i,j])
-    writeToFile(outputFile, yFrameValues, frameNum, totalAbsoluteError)
+                result[i][j] = yFrameValues[i,j]
+    writeToFile(outputFile, result, frameNum, totalAbsoluteError)
 
 
 def writeToFile(file, values, frameNum, error):
@@ -79,13 +84,16 @@ def writeToFile(file, values, frameNum, error):
     for i in range(rows):
         for j in range(cols):
             contents = "< f" + str(frameNum) + ",(" + str(i) + "," + str(j) + "), " + str(values[i][j]) + " >\n"
+
             file.write(contents)
+
+
     totalAbsoluteErrorContent = "Total Absolute Error for this frame is " + str(error) + "\n"
     file.write(totalAbsoluteErrorContent)
 
-# Directory in which all the video files are present
+# Directory in which all the video files are pesent
 print('Enter root directory')
-# ToDo: User input should be provided
+
 rootDir = "D:\\VideoFiles"
 
 # Get all the files from the root directory
@@ -94,9 +102,9 @@ allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
 print(allFiles)
 
 #Get the video for processing
-print('Enter the video file you wan to process')
+videoName = raw_input('Enter the video file you want to process')
 #ToDo : User input should be provided
-videoForProcessing = "3.mp4"
+videoForProcessing = rootDir + "\\" + videoName
 
 option = util.getEncodingOption()
 x,y = util.getPixelRegion()
@@ -108,13 +116,11 @@ outputFile = open(fileName, 'w')
 video = cv2.VideoCapture(videoForProcessing)
 ret, frame = video.read()
 framesList = []
-frameNum = 0;
+frameNum = 0
 while(video.isOpened()):
     ret, frame = video.read()
     if ret:
         frameNum +=1
-        if frameNum>2:
-            break
 
         croppedFrame = frame[x:x+10, y:y+10]
         YCC_CroppedFrame = cv2.cvtColor(croppedFrame, cv2.COLOR_BGR2YCR_CB)
@@ -129,7 +135,8 @@ while(video.isOpened()):
             pc4(outputFile, yFrameValues, frameNum)
         elif option == "5":
             pc5(outputFile, yFrameValues, frameNum)
-
-
-
+    else:
+        break
+time.sleep(1)
+outputFile.close()
 
