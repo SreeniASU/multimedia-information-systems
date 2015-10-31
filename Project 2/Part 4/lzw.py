@@ -1,11 +1,15 @@
 
 #ISSUE: codes for each character have to be binaries, not decimals
 
-def createDictionary(string,dictionary):
+def createDictionary(string):
 	#creates the dictionary based on the string passed as argument
+	dictionary = {}
+
 	for c in string:
 		if (searchInDictionary(c,dictionary) == -1):
 			dictionary[c] = len(dictionary) + 1
+
+	return dictionary
 
 def searchInDictionary(string,dictionary):
 	#searchs in dictionary if the string "string" is located there
@@ -14,10 +18,39 @@ def searchInDictionary(string,dictionary):
 	except KeyError:
 		return -1
 
-def lzwEncoder(string,dicitonary):
+def updateDictionary(dictionary):
+	#convert the codes on the dictionary to binary numbers
+	bin_length = len(bin(len(dictionary))[2:])
+
+	for symbol in dictionary:
+		code = dictionary[symbol]
+		binary = bin(int(code))[2:]
+		while(len(binary) < bin_length):
+			binary = '0' + binary
+
+		dictionary[symbol] = binary
+
+
+	return dictionary
+
+def updateEncodedString(encoded_string,dictionary):
+	#convert the codes on the encoded string list to binary numbers
+	bin_length = len(bin(len(dictionary))[2:])
+
+	for i in range(0,len(encoded_string)):
+		binary = bin(int(encoded_string[i]))[2:]
+		while(len(binary) < bin_length):
+			binary = '0' + binary
+		encoded_string[i] = binary
+
+	# print dictionary
+
+	return encoded_string
+
+def lzwEncoder(string,dictionary):
+
 	s = string[0]
 	output_code = [] #code to be outputed at the end(treated as an array)
-
 	for i in range(0,len(string)):
 		if (i == 0): continue
 		c = string[i]
@@ -46,15 +79,17 @@ def lzwDecoder(code,dictionary):
 
 	return decoded_string
 
-string = "Use the join method of the empty string to join all of the strings together with the empty string in between, like so:	"
+"""string = "AAABAUBSDBBAEUQWYEUI8Y1H23KHADSZJBZJC,CNX"
 
-dictionary = {}
-
-createDictionary(string,dictionary)
+dictionary = createDictionary(string)
 
 print ("Original string: " + string)
 
 encoded_string = lzwEncoder(string,dictionary)
+
+encoded_string = updateEncodedString(encoded_string,dictionary)
+dictionary = updateDictionary(dictionary)
+print 'string: ' + string
 
 print("Encoded string: " + ''.join(encoded_string))
 
@@ -64,6 +99,4 @@ print("Decoded string: " + decoded_string)
 
 if (string == decoded_string):
 	print "Decoding was successful!"
-
-
-# print dictionary
+"""

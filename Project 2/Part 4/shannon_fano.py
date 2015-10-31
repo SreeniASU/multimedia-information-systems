@@ -167,9 +167,9 @@ def decodeString(encodedString,dictionary):
 			s = ""
 
 	return decodedString
-
-# string = "1231 782728 12732 19903 123276 193983 38748 09609 1272738 09230 -1 20 1- 2390 3-4"
-string = '210$'
+"""
+#string = "1231 782728 12732 19903 123276 193983 38748 09609 1272738 09230 -1 20 1- 2390 3-4"
+string = '1234567890'
 
 frequency = stringFrequencyValues(string)
 
@@ -200,7 +200,7 @@ setCodes(encodedTree,"")
 # print '\n'
 
 dictionary = createDictionary(encodedTree,frequency)
-
+print dictionary
 # print 'dicitonary: '
 # print dictionary
 # print encodedTree.lnode.rnode.lnode.value
@@ -217,3 +217,4 @@ print "Decoded string: " + decodedString
 
 if (decodedString == string):
 	print "Decoding was successful!"
+"""

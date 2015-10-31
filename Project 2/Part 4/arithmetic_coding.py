@@ -159,7 +159,7 @@ def arithmetic_decode(bin_code,dictionary):
 		decimal_value = (decimal_value - low)/rng
 
 	return decoded_string
-
+"""
 string = 'CAEE'
 string = updateString(string)
 dictionary = createDictionary(string)
@@ -188,3 +188,5 @@ print "Decoded string: " + decoded_string
 
 if (decoded_string == string):
 	print "Decoding was successful!"
+	
+"""
