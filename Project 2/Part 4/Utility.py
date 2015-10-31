@@ -50,3 +50,20 @@ def goBack(x, y, go_back, width=10):
         return x - 1, y + width - go_back
     else:
         return x, y - go_back
+
+def selectCodingOption():
+    option = 0  #initialize variable
+
+    while (option < 1 or option > 4):
+        print "Select which encoding option you want: "
+        print "1. No compression"
+        print "2. Shannon-Fano coding"
+        print "3. LZW coding"
+        print "4. Arithmetic coding"
+        
+        option = int(raw_input())
+
+        if (option < 1 or option > 4):
+            print "Invalid input! Please select a valid option."
+
+    return option

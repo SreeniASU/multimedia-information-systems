@@ -72,14 +72,20 @@ def lzwEncoder(string,dictionary):
 def lzwDecoder(code,dictionary):
 	decoded_string = ""
 
+	dictionary2 = {}
+	#invert dictionary(now indexes are the codes, and the values are the pattern)
+	for symbol in dictionary:
+		dictionary2[dictionary[symbol]] = symbol
+
 	for c in code:
-		for i in dictionary:
-			if (str(dictionary[i]) == c):
-				decoded_string += i
+		decoded_string += dictionary2[c]
+		# for i in dictionary:
+			# if (str(dictionary[i]) == c):
+				# decoded_string += i
 
 	return decoded_string
-
-"""string = "AAABAUBSDBBAEUQWYEUI8Y1H23KHADSZJBZJC,CNX"
+"""
+string = "kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}"
 
 dictionary = createDictionary(string)
 

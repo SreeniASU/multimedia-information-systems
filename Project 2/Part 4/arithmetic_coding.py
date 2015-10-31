@@ -4,7 +4,7 @@ from decimal import *
 #WHATS MISSING: 
 # - Figure out how to get the probabilities for the symbols
 
-getcontext().prec = 500 #precision of the floating point numbers
+getcontext().prec = 2000 #precision of the floating point numbers
 
 terminator = "$" #value that indicates end of string
 
@@ -110,9 +110,6 @@ def frequencyInterval(string,dictionary):
 		for i in lst: nstr += str(i)
 		low = float(nstr)"""
 
-	# if (low == high):
-		# print 'EQUALS!!!'
-
 	return low,high
 
 def arithmetic_encode(frequency_interval):
@@ -180,7 +177,6 @@ print "Frequency interval: " + str(frequency_interval)
 code = arithmetic_encode(frequency_interval)
 
 decoded_string = arithmetic_decode(code,dictionary)
-
 
 print 'Original string: ' + string
 print 'Encoded string: ' + code

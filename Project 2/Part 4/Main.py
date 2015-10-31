@@ -1,7 +1,9 @@
 #Checklist
 """
-	- Ask the user to choose which encoding option will be used
-	- Encode the data and write it to another file, along with the dictionary
+	- Encode the data and write it to another file(DONE), along with the dictionary(UNDONE)
+	- Dictionary bit length for LZW
+	- Output LZW data as a string, not as a list(maybe)
+	- Figure out why LZW is not working 100%
 
 	FOR TESTING: 
 	- Decode the data contained on the encoded file
@@ -35,7 +37,8 @@ def LZW(file_content):
 	print "Updating dictionary values to binary values..."
 	dictionary = lzw.updateDictionary(dictionary)
 	print "Values updated!"
-	# print 'string: ' + string
+
+	writeToFile(3,1,encoded_string)
 
 	# print("Encoded string: " + ''.join(encoded_string))
 
@@ -43,12 +46,14 @@ def LZW(file_content):
 	decoded_string = lzw.lzwDecoder(encoded_string,dictionary)
 	print "Decoding finished!\n"
 
+	writeToFile(3,0,decoded_string)
+
 	# print("Decoded string: " + decoded_string)
 
 	# if (string == decoded_string):
 		# print "Decoding was successful!"
 	
-def shanonFano(file_content):
+def shannonFano(file_content):
 	frequency = sf.stringFrequencyValues(file_content)
 
 	sf.selectionSort(frequency) #sorts the array based on the frequency...
@@ -58,26 +63,61 @@ def shanonFano(file_content):
 
 	sf.setCodes(encodedTree,"")
 
+	print "Creating dictionary...\n "
 	dictionary = sf.createDictionary(encodedTree,frequency)
 
+	print "Encoding data...\n"
 	encodedString = sf.encodeString(file_content,dictionary)
 
-	print "Outputing encoded data to file..."
-	output_file_encoded = open('Data/output_test_encoded.tpc','w')
-	output_file_encoded.write(str(encodedString))
-	print "Finished!\n"
+	writeToFile(2,1,encodedString)
 
 	decodedString = sf.decodeString(encodedString,dictionary)
 
-	print "Outputing decoded data to file..."
-	output_file_decoded = open('Data/output_test_decoded.tpc','w')
+	writeToFile(2,0,decodedString)
 
-	output_file_decoded.write(decodedString)
 	print "Finished!\n"
 
 	if (decodedString == file_content):
 		print "Decoding was successful!"
 
+def arithmeticCoding(file_content):
+	file_content = ac.updateString(file_content)
+
+	print "Creating dictionary...\n"
+	dictionary = ac.createDictionary(file_content)
+
+	print "Calculating the frequency interval for the given data...\n"
+	#first, the final frequency interval is calculated for the given string
+	frequency_interval = ac.frequencyInterval(file_content,dictionary)
+
+	print "Encoding data...\n"
+	code = ac.arithmetic_encode(frequency_interval)
+
+	writeToFile(4,1,code)
+
+	print "Decoding data...\n"
+	decoded_string = ac.arithmetic_decode(code,dictionary)
+
+	writeToFile(4,0,decoded_string)
+
+	print "Finished!\n"
+
+def writeToFile(option,type,data):
+	#writes encoded data to file
+	# print str(data)
+
+	if (type == 1):
+		print "Outputing data to file...\n"
+
+		output_file = open('Data/X_Y_' + str(option) + '.tpc','w')
+		output_file.write(str(data))
+	elif (type == 0):
+		print "Outputing decoded data to file...\n"
+		output_file = open('Data/output_test_decoded.tpc','w')
+		output_file.write(str(data))
+	
+	if (type == 1 or type == 2):
+		output_file.close()
 
 #------------------------------------------------------------------------------------------------------------------
 
@@ -88,15 +128,18 @@ inputFileName =  'test.tpc'#util.getVideoFile(allFiles)
 
 inputFilePath = rootDir + "/" + inputFileName
 
-# print inputFilePath
-
 inputFile = open(inputFilePath,'r')
 
-# print inputFile
 fileContent = inputFile.read()
 
-#testing LZW
-# LZW(fileContent)
+codingType = util.selectCodingOption()
 
-#testing shannon-fano
-shanonFano(fileContent)
+if (codingType == 1):
+	#no coding
+	writeToFile(1,1,fileContent)
+elif (codingType == 2):
+	shannonFano(fileContent)
+elif (codingType == 3):
+	LZW(fileContent)
+elif (codingType == 4):
+	arithmeticCoding(fileContent)
