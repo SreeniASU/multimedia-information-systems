@@ -60,16 +60,20 @@ def pc4(yFrameValues,t1,t2,t3,t4):
             s3 = float(t3[i][j])
             s4 = float(t4[i][j])
             try:
-                alpha2 = float((s1 * s3 - s2**2)/(s3**2-s4*s2))
+                if s3**2 - s4*s2 == 0:
+                    alpha2 = 0.5
+                else:
+                    alpha2 = (s1 * s3 - s2**2)/(s3**2-s4*s2)
             except:
                 alpha2 = 0.5
                 pass
+
             if alpha2 < 0 or alpha2 > 1 or math.isnan(alpha2):
                 alpha2 = .5
 
             alpha1 = 1 - alpha2
 
-            predicted = float(alpha1 * s1 + alpha2*s2)
+            predicted = alpha1 * s1 + alpha2*s2
             result[i][j] = (yFrameValues[i][j] - predicted)
 
     return result

@@ -57,19 +57,32 @@ def uncodePC4(initials, frames):
     for i in range(4, len(frames)):
         predictor = np.empty_like(frames[i], dtype=np.float)
 
-        try:
-            alpha2 = float((result[i-1] * result[i-3] - result[i-2]**2)/(result[i-3]**2-result[i-4]*result[i-2]))
-        except:
-            alpha2 = 0.5
-            pass
-        if alpha2 < 0 or alpha2 > 1 or math.isnan(alpha2):
-            alpha2 = .5
+        for x in range(10):
+            for y in range(10):
+                s1 = result[i-1][x][y]
+                s2 = result[i-2][x][y]
+                s3 = result[i-3][x][y]
+                s4 = result[i-4][x][y]
 
-        alpha1 = 1 - alpha2
+                try:
+                    if s3**2-s4*s2 == 0:
+                        alpha2 = 0.5
+                    else:
+                        alpha2 = (s1 * s3 - s2**2)/(s3**2-s4*s2)
+                except Exeption, x:
+                    alpha2 = 0.5
+                    pass
 
-        predictor = np.add(alpha1 * result[i-1], alpha2 * result[i-2])
-        print(predictor)
-        result[i] = np.add(frames[i], predictor)
+                if alpha2 < -0.000001 or alpha2 > 1.000001 or math.isnan(alpha2):
+                    alpha2 = .5
+
+                alpha1 = 1 - alpha2
+
+                predictor = alpha1 * result[i-1][x][y] + alpha2 * result[i-2][x][y]
+                result[i][x][y] = frames[i][x][y] + predictor
+
+        print(result[i])
+
     return np.array(result, dtype=np.uint8)
 
 def parseFile(filepath):
