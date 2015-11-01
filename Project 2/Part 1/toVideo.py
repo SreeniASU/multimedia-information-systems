@@ -39,10 +39,38 @@ def uncodePC2(initials, frames):
     return result
 
 def uncodePC3(initials, frames):
-    return frames
+    result = np.empty_like(frames, dtype=np.float)
+    result[0] = initials[0]
+    result[1] = initials[1]
+    for i in range(2, len(frames)):
+        predictor = np.empty_like(frames[i], dtype=np.float)
+        predictor = np.add(result[i-1], result[i-2]) / 2
+        result[i] = np.add(frames[i], predictor)
+    return np.array(result, dtype=np.uint8)
 
 def uncodePC4(initials, frames):
-    return frames
+    result = np.empty_like(frames, dtype=np.float)
+    result[0] = initials[0]
+    result[1] = initials[1]
+    result[2] = initials[2]
+    result[3] = initials[3]
+    for i in range(4, len(frames)):
+        predictor = np.empty_like(frames[i], dtype=np.float)
+
+        try:
+            alpha2 = float((result[i-1] * result[i-3] - result[i-2]**2)/(result[i-3]**2-result[i-4]*result[i-2]))
+        except:
+            alpha2 = 0.5
+            pass
+        if alpha2 < 0 or alpha2 > 1 or math.isnan(alpha2):
+            alpha2 = .5
+
+        alpha1 = 1 - alpha2
+
+        predictor = np.add(alpha1 * result[i-1], alpha2 * result[i-2])
+        print(predictor)
+        result[i] = np.add(frames[i], predictor)
+    return np.array(result, dtype=np.uint8)
 
 def parseFile(filepath):
     inputFile = open(filepath, 'r')
@@ -58,14 +86,19 @@ def parseFile(filepath):
             if line[0]== "}": #finds end of initial value
                initFlag = False
                init.append(stringToMatrix(initString))
+               initString = ""
             else:
                initString += line     # adds all lines of initial value of a frame to init.
         else:
-            result = re.match("< f(?P<f>\d+),\((?P<x>\d),(?P<y>\d)\), (?P<e>-?\d+(.\d*)?) >\n", line)
+            result = re.match("< f(?P<f>\d+),\((?P<x>\d),(?P<y>\d)\), (?P<e>-?\d+(.*)?) >\n", line)
             f = int(result.group("f")) - 1
             x = int(result.group("x"))
             y = int(result.group("y"))
-            e = float(result.group("e"))
+            if (re.match(".*e.*",result.group("e"))):
+                e = 0
+            else:
+                e = float(result.group("e"))
+
             if (f > frame):
                 frames.append(np.empty([10,10]))
                 frame += 1
@@ -93,14 +126,9 @@ if __name__ == '__main__':
         result = uncodePC4(initials, frames)
 
     tempVideo = cv2.VideoWriter(sys.argv[1].strip(".tpc") + ".avi", cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
+    print(initials[0])
+    print(initials[1])
+    print(result[2])
     for frame in result:
         betterResult = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
         tempVideo.write(betterResult)
-#
-# flags = ""
-#
-# for f in frames:
-#     image = cv2.imdecode(f, flags)
-#
-#
-#     cv2.WriteFrame(writer, image)
