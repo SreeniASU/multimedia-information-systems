@@ -92,11 +92,13 @@ def writeToFile(file, values,frameNum):
     return frameError
 
 if __name__ == '__main__':
+    # If arguments were not provided in command line arguments,
+    # prompt the user
     if (len(sys.argv) == 1):
         rootDir = util.safeGetDirectory()
         allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
         videoForProcessing = util.getVideoFile(allFiles)
-        videoName = rootDir + "/" + videoForProcessing
+        videoName = os.path.join(rootDir, videoForProcessing)
         x,y = util.getPixelRegion()
         encodingOption = util.getEncodingOption()
     elif (len(sys.argv) == 5):

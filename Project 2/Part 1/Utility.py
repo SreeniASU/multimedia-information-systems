@@ -1,5 +1,3 @@
-
-
 def log (message):
     print(message)
 
@@ -42,11 +40,3 @@ def getEncodingOption():
 
 def getPixelRegion():
     return input("Enter the origin of the 10x10 pixel region: ")
-
-def goBack(x, y, go_back, width=10):
-    if x == 0 and (y == 0 or y == 1):
-        return x, y
-    elif y - go_back < 0:
-        return x - 1, y + width - go_back
-    else:
-        return x, y - go_back

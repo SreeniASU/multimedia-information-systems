@@ -91,52 +91,48 @@ def writeToFile(file, values, frameNum, error):
     totalAbsoluteErrorContent = "Total Absolute Error for this frame is " + str(error) + "\n"
     file.write(totalAbsoluteErrorContent)
 
-# Directory in which all the video files are pesent
-print('Enter root directory')
+if __name__ == '__main__':
+    # Directory in which all the video files are pesent
+    rootDir = util.safeGetDirectory()
 
-rootDir = "D:\\VideoFiles"
+    # Get all the files from the root directory
+    allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
 
-# Get all the files from the root directory
-allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
+    #Get the video for processing
+    videoName = util.getVideoFile(allFiles)
+    videoForProcessing = join(rootDir, videoName)
 
-print(allFiles)
+    option = util.getEncodingOption()
+    x,y = util.getPixelRegion()
 
-#Get the video for processing
-videoName = raw_input('Enter the video file you want to process')
-#ToDo : User input should be provided
-videoForProcessing = rootDir + "\\" + videoName
+    fileName = videoName.strip('.mp4') + "_" + option + ".spc"
+    outputFile = open(fileName, 'w')
 
-option = util.getEncodingOption()
-x,y = util.getPixelRegion()
-
-fileName = videoForProcessing.strip('.mp4') + "_" + option + ".spc"
-outputFile = open(fileName, 'w')
-
-#Get all the frames from the video
-video = cv2.VideoCapture(videoForProcessing)
-ret, frame = video.read()
-framesList = []
-frameNum = 0
-while(video.isOpened()):
+    #Get all the frames from the video
+    video = cv2.VideoCapture(videoForProcessing)
     ret, frame = video.read()
-    if ret:
-        frameNum +=1
+    framesList = []
+    frameNum = 0
+    while(video.isOpened()):
+        ret, frame = video.read()
+        if ret:
+            frameNum +=1
 
-        croppedFrame = frame[x:x+10, y:y+10]
-        YCC_CroppedFrame = cv2.cvtColor(croppedFrame, cv2.COLOR_BGR2YCR_CB)
-        yFrameValues = cv2.split(YCC_CroppedFrame)[0]
-        if option == "1":
-            pc1(outputFile, yFrameValues, frameNum)
-        elif option == "2":
-            pc2(outputFile, yFrameValues, frameNum)
-        elif option == "3":
-            pc3(outputFile, yFrameValues, frameNum)
-        elif option == "4":
-            pc4(outputFile, yFrameValues, frameNum)
-        elif option == "5":
-            pc5(outputFile, yFrameValues, frameNum)
-    else:
-        break
-time.sleep(1)
-outputFile.close()
+            croppedFrame = frame[x:x+10, y:y+10]
+            YCC_CroppedFrame = cv2.cvtColor(croppedFrame, cv2.COLOR_BGR2YCR_CB)
+            yFrameValues = cv2.split(YCC_CroppedFrame)[0]
+            if option == "1":
+                pc1(outputFile, yFrameValues, frameNum)
+            elif option == "2":
+                pc2(outputFile, yFrameValues, frameNum)
+            elif option == "3":
+                pc3(outputFile, yFrameValues, frameNum)
+            elif option == "4":
+                pc4(outputFile, yFrameValues, frameNum)
+            elif option == "5":
+                pc5(outputFile, yFrameValues, frameNum)
+        else:
+            break
+    time.sleep(1)
+    outputFile.close()
 
