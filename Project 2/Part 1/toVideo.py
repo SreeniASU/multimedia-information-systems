@@ -1,56 +1,101 @@
-__author__ = 'azfut_000'
+__author__ = 'Team 6'
 
 import cv2
+import re
+import sys
 import os.path
 import numpy as np
 from os import listdir
 from os.path import isfile,join
-import Utility as util
+import utility as util
 import math
 
+# Utility function for converting initialization string to
+# a matrix
+def stringToMatrix(matrixString):
+    lines = matrixString.strip().split('\n')
+    result = []
+    for line in lines:
+        values = line.strip(' []').split(' ')
+        i = 0
+        while i < len(values):
+            if (len(values[i]) == 0):
+                values.pop(i)
+            else:
+                values[i] = int(values[i])
+                i += 1
 
-givenFileName = "path_2.tpc" #sample file name to break apart
-option = int((givenFileName.split('_',1)[1]).strip(".tpc")) #gets number from filename
-print(option)
+        result.append(values)
 
-rootDir =os.path.join("E:","downloadsSSD","multimedia-information-systems-master")#,"multimedia-information-systems-master","test","project1") # windows path
-fileName = "2_4.tpc"
-print fileName
+    return result
 
-# rootDir = os.path.join( "C:" , "Users", "azfut_000", "PycharmProjects","part2", )
-filepath = rootDir + "/" + fileName
+def uncodePC2(initials, frames):
+    result = np.empty_like(frames, dtype=np.uint8)
+    lastFrame = np.array(initials[0], dtype=np.uint8)
+    for i in range(len(frames)):
+       result[i] = np.add(lastFrame, frames[i])
+       lastFrame = result[i]
 
-inputFile = open(filepath, 'r')
-frames = np.ndarray
-frameArray= []
-init = ""
-initFlag = False
-count = 0
-for line in inputFile.readlines():
-    str = line[0]
+    return result
 
-    if str == "{":
-        initFlag = True
-    elif initFlag :
-        if line[-2]== "}": #finds end of initial value
+def uncodePC3(initials, frames):
+    return frames
+
+def uncodePC4(initials, frames):
+    return frames
+
+def parseFile(filepath):
+    inputFile = open(filepath, 'r')
+    frames = []
+    initString = ""
+    init = []
+    initFlag = False
+    frame = -1
+    for line in inputFile.readlines():
+        if line[0] == "{":
+            initFlag = True
+        elif initFlag :
+            if line[0]== "}": #finds end of initial value
                initFlag = False
+               init.append(stringToMatrix(initString))
+            else:
+               initString += line     # adds all lines of initial value of a frame to init.
         else:
-               init += line     # adds all lines of initial value of a frame to init.
+            result = re.match("< f(?P<f>\d+),\((?P<x>\d),(?P<y>\d)\), (?P<e>-?\d+(.\d*)?) >\n", line)
+            f = int(result.group("f")) - 1
+            x = int(result.group("x"))
+            y = int(result.group("y"))
+            e = float(result.group("e"))
+            if (f > frame):
+                frames.append(np.empty([10,10]))
+                frame += 1
+            
+            frames[f][x][y] = e
+    
+    return init, np.array(frames)
+
+
+if __name__ == '__main__':
+    # rootDir =os.path.join("E:","downloadsSSD","multimedia-information-systems-master")#,"multimedia-information-systems-master","test","project1") # windows path
+    filepath = os.path.join(os.path.dirname(__file__), sys.argv[1])
+    option = int((sys.argv[1].split('_',1)[1]).strip(".tpc")) #gets number from filename
+    print(option)
+
+    initials, frames = parseFile(filepath)
+
+    if option == 1:
+        result = np.array(frames, dtype=np.uint8)
+    elif option == 2:
+        result = uncodePC2(initials, frames)
+    elif option == 3:
+        result = uncodePC3(initials, frames)
     else:
-        # frameArray+=
-        tempStr =((line.strip(">")).strip("<")).strip("\n")
-        # print tempStr
-        # temp = tempStr.split(',')
-        f,x,y,error = tempStr.split(',')#temp[0],tempStr[1]+temp[2],temp
-        pos = x,y
-        if count<10:
-            # print line
-            print pos
-            # print(frameArray)
-        count += 1
+        result = uncodePC4(initials, frames)
 
-
-
+    tempVideo = cv2.VideoWriter(sys.argv[1].strip(".tpc") + ".avi", cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
+    for frame in result:
+        betterResult = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        tempVideo.write(betterResult)
 #
 # flags = ""
 #

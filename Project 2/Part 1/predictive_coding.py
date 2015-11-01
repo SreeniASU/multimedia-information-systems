@@ -166,15 +166,15 @@ if __name__ == '__main__':
                 writeToFile(outputFile, pc1(yFrameValues), frameNum)
             elif encodingOption == "2":
                 if frameNum == 1:
-                    outputFile.write("{" + str(yFrameValues) + "}\n")
+                    outputFile.write("{\n" + str(yFrameValues) + "\n}\n")
                 totalError += writeToFile(outputFile, pc2(yFrameValues,t1), frameNum)
             elif encodingOption == "3":
                 if frameNum == 1 or frameNum == 2:
-                    outputFile.write("{" + str(yFrameValues) + "}\n")
+                    outputFile.write("{\n" + str(yFrameValues) + "\n}\n")
                 totalError += writeToFile(outputFile, pc3(yFrameValues,t1,t2), frameNum)
             elif encodingOption == "4":
                 if frameNum == 1 or frameNum == 2 or frameNum == 3 or frameNum == 4:
-                    outputFile.write("{" + str(yFrameValues) + "}\n")
+                    outputFile.write("{\n" + str(yFrameValues) + "\n}\n")
                 totalError += writeToFile(outputFile, pc4(yFrameValues,t1,t2,t3,t4), frameNum)
         else:
             break
