@@ -42,7 +42,6 @@ def createDictionary(string):
 		symbol_count = dictionary[char]
 		probability = Decimal(str(symbol_count/Decimal(str(len_str))))
 		dictionary[char] = [low,low + probability]
-		# low += Decimal(str(symbol_count/float(len_str)))
 		low += Decimal(symbol_count/Decimal(len_str))
 
 	return dictionary
