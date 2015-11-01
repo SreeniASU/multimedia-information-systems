@@ -6,7 +6,7 @@ import sys
 import os.path
 import numpy as np
 from os import listdir
-from os.path import isfile,join
+from os.path import isfile,join,basename
 import utility as util
 import math
 
@@ -29,7 +29,7 @@ def stringToMatrix(matrixString):
 
     return result
 
-def uncodePC2(initials, frames):
+def uncodeTPC2(initials, frames):
     result = np.empty_like(frames, dtype=np.uint8)
     lastFrame = np.array(initials[0], dtype=np.uint8)
     for i in range(len(frames)):
@@ -38,7 +38,7 @@ def uncodePC2(initials, frames):
 
     return result
 
-def uncodePC3(initials, frames):
+def uncodeTPC3(initials, frames):
     result = np.empty_like(frames, dtype=np.float)
     result[0] = initials[0]
     result[1] = initials[1]
@@ -48,7 +48,7 @@ def uncodePC3(initials, frames):
         result[i] = np.add(frames[i], predictor)
     return np.array(result, dtype=np.uint8)
 
-def uncodePC4(initials, frames):
+def uncodeTPC4(initials, frames):
     result = np.empty_like(frames, dtype=np.float)
     result[0] = initials[0]
     result[1] = initials[1]
@@ -120,28 +120,30 @@ def parseFile(filepath):
     
     return init, np.array(frames)
 
-
-if __name__ == '__main__':
-    # rootDir =os.path.join("E:","downloadsSSD","multimedia-information-systems-master")#,"multimedia-information-systems-master","test","project1") # windows path
-    filepath = os.path.join(os.path.dirname(__file__), sys.argv[1])
-    option = int((sys.argv[1].split('_',1)[1]).strip(".tpc")) #gets number from filename
-    print(option)
-
-    initials, frames = parseFile(filepath)
-
+def tpcToVideo(initials, frames, option):
     if option == 1:
         result = np.array(frames, dtype=np.uint8)
     elif option == 2:
-        result = uncodePC2(initials, frames)
+        result = uncodeTPC2(initials, frames)
     elif option == 3:
-        result = uncodePC3(initials, frames)
+        result = uncodeTPC3(initials, frames)
     else:
-        result = uncodePC4(initials, frames)
+        result = uncodeTPC4(initials, frames)
 
-    tempVideo = cv2.VideoWriter(sys.argv[1].strip(".tpc") + ".avi", cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
-    print(initials[0])
-    print(initials[1])
-    print(result[2])
+    return result
+
+if __name__ == '__main__':
+    path = sys.argv[1]
+    filepath = os.path.join(os.path.dirname(__file__), path)
+    print(basename(path))
+    # option = int(basename(path).split('.', 1)[0].split('_',1)[1]) #gets number from filename
+    ext = path.split('.', 1)[1]
+    initials, frames = util.parseFile(filepath)
+
+    result = tpcToVideo(initials, frames, option)
+
+    tempVideo = cv2.VideoWriter(basename(path).split('.', 1)[0] + ".avi", cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
     for frame in result:
-        betterResult = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-        tempVideo.write(betterResult)
+        rgbResult = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        tempVideo.write(rgbResult)
+

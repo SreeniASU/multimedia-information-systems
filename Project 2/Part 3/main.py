@@ -2,14 +2,14 @@ import cv2
 import math
 import numpy as np
 from os import listdir
-from os.path import isfile,join
+from os.path import isfile,join,basename
 
 def getOption():
     while 1:
         try:
             option = input("Which quantization option would you like to use?\n" +
                          "1: No quantization\n" +
-                         "2: Quantization into 2^m uniform bins\n>")
+                         "2: Quantization into 2^m uniform bins\n> ")
             if option > 2 or option < 1:
                 print(str(option) + " is not a valid selection. Please make a different selection.\n")
             else:
@@ -54,7 +54,7 @@ def getErrors(content):
     rows = len(content)
     errors = []
     for i in range(rows):
-        if content[i][0] != "{":
+        if content[i][0] == "<":
             errors.append(float(content[i].split(",")[3].replace(">", "")))
     return errors
 
@@ -88,10 +88,10 @@ def writeToFile(outputFile,content, errors):
     rows = len(content)
     j = 0
     for i in range(rows):
-        if content[i][0] != "{":
+        if content[i][0] == "<":
             error = content[i].split(",")[3]
             beginning = content[i].split(error)[0]
-            content[i] = beginning + str(errors[j]) + " >"
+            content[i] = beginning + " " + str(errors[j]) + " >"
             j += 1
 
         outputFile.write(content[i] + "\n")
@@ -122,6 +122,7 @@ option = getOption()
 if option == 2:
     m = getMValue()
     errors = quantizeWithM(errors,m)
+    print(fileName)
     if "tpc" in fileName:
         fileName = fileName.strip(".tpc") + "_" + str(m) + ".tpq"
     elif "spc" in fileName:
@@ -135,7 +136,7 @@ elif option == 1:
 
 outputFile = open(fileName, 'w')
 writeToFile(outputFile,content,errors)
-log(fileName.strip(rootDir) + " created in location " + rootDir)
+log(basename(fileName) + " created in location " + rootDir)
 outputFile.close()
 
 

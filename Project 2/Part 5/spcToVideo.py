@@ -1,14 +1,14 @@
 __author__ = 'Team 6'
 
 import cv2
-import re
 import sys
+import os.path
 import numpy as np
 from os import listdir
-from os.path import dirname,join
+import utility as util
 import math
 
-def uncodePC2(frames):
+def uncodeSPC2(frames):
     result = np.empty_like(frames, dtype=np.uint8)
     for i in range(len(frames)):
         for x in range(0,10):
@@ -20,7 +20,7 @@ def uncodePC2(frames):
 
     return result
 
-def uncodePC3(frames):
+def uncodeSPC3(frames):
     result = np.empty_like(frames, dtype=np.uint8)
     for i in range(len(frames)):
         for x in range(0,10):
@@ -32,7 +32,7 @@ def uncodePC3(frames):
 
     return result
 
-def uncodePC4(frames):
+def uncodeSPC4(frames):
     result = np.empty_like(frames, dtype=np.uint8)
     for i in range(len(frames)):
         for x in range(10):
@@ -44,7 +44,7 @@ def uncodePC4(frames):
 
     return result
 
-def uncodePC5(frames):
+def uncodeSPC5(frames):
     result = np.empty_like(frames, dtype=np.float)
     for i in range(len(frames)):
         for x in range(10):
@@ -60,37 +60,7 @@ def uncodePC5(frames):
 
     return np.array(result, dtype=np.uint8)
 
-def parseFile(filepath):
-    inputFile = open(filepath, 'r')
-    frames = []
-    frame = -1
-    for line in inputFile.readlines():
-        result = re.match("< f(?P<f>\d+),\((?P<x>\d),(?P<y>\d)\), (?P<e>-?\d+(.*)?) >\n", line)
-        if result:
-            f = int(result.group("f")) - 1
-            x = int(result.group("x"))
-            y = int(result.group("y"))
-            if (re.match(".*e.*",result.group("e"))):
-                e = 0
-            else:
-                e = float(result.group("e"))
-
-            if (f > frame):
-                frames.append(np.empty([10,10]))
-                frame += 1
-            
-            frames[f][x][y] = e
-    
-    return np.array(frames)
-
-
-if __name__ == '__main__':
-    filepath = join(dirname(__file__), sys.argv[1])
-    option = int((sys.argv[1].split('_',1)[1]).strip(".spc")) #gets number from filename
-    print("Using decoding option" + str(option))
-
-    frames = parseFile(filepath)
-
+def spcToVideo(frames, option):
     if option == 1:
         result = np.array(frames, dtype=np.uint8)
     elif option == 2:
@@ -104,7 +74,19 @@ if __name__ == '__main__':
     else:
         print("Unknown option " + str(option))
 
-    tempVideo = cv2.VideoWriter(sys.argv[1].strip(".tpc") + ".avi", cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
+    return result
+
+if __name__ == '__main__':
+    path = sys.argv[1]
+    filepath = os.path.join(os.path.dirname(__file__), path)
+    option = int(os.path.basename(path).split('.', 1)[0].split('_',1)[1]) #gets number from filename
+    print("Using decoding option" + str(option))
+
+    _, frames = util.parseFile(filepath)
+
+    result = spcToVideo(frames, option)
+
+    tempVideo = cv2.VideoWriter(os.path.basename(path).split('.', 1)[0] + ".avi", cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
     for frame in result:
-        betterResult = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-        tempVideo.write(betterResult)
+        rgbResult = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        tempVideo.write(rgbResult)
