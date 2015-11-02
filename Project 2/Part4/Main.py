@@ -18,7 +18,9 @@ import shannon_fano as sf
 import lzw
 import arithmetic_coding as ac
 import ast
+from decimal import *
 
+getcontext().prec = 20000 #precision of the floating point numbers
 
 def LZW(file_content,outputFileName):
 	string = fileContent
@@ -175,6 +177,57 @@ def writeToFile(option,type,data,dictionary,outputFileName):
 
 	return fileSize
 
+def arithmeticCodingDecode(file_path):
+	#------------------------------------------------------------
+	#Decoding part - Should not be on Part IV
+
+	print "Opening file..."
+	with open(file_path,'r') as f:
+ 		content = f.read()
+
+	if "tpv" in file_path:
+		file_path = file_path.strip("_4.tpv") + ".tpq"
+	elif "spv" in file_path:
+		file_path = file_path.strip("_4.spv") + ".spq"
+
+
+	start = content.find("{'")
+	end = content.find("~$!*")
+
+	string_dictionary = content[start:end]
+	# content.replace(content[start:end],'')
+	content = content[end + 4:]
+
+	print start,end
+	print
+	print
+
+	string_dictionary = string_dictionary.replace("Decimal(","")
+	string_dictionary = string_dictionary.replace(")","")
+
+	# print string_dictionary
+
+
+	dictionary = ast.literal_eval(string_dictionary)
+
+	for symbol in dictionary:
+		dictionary[symbol][0] = Decimal(dictionary[symbol][0])
+		dictionary[symbol][1] = Decimal(dictionary[symbol][1])
+
+	# raw_input("press return")
+
+	print dictionary
+
+
+	print "Decoding data...\n"
+	decoded_string = ac.arithmetic_decode(content,dictionary)
+
+	writeToFile(4,0,decoded_string,None,outputFileName)
+
+	fileSize = writeToFile(3,0,decoded_string,None,file_path)
+
+	return file_path
+
 def getDicionaryFromFile(encoded_file):
 	#gets and file object as a pointer and extracts the dictionary from it
 	pass
@@ -209,7 +262,8 @@ elif (codingType == 3):
 	outputfileSize = LZW(fileContent,outputFileName)
 	# LZWDecode(inputFilePath)
 elif (codingType == 4):
-	outputfileSize = arithmeticCoding(fileContent,outputFileName)
+	# outputfileSize = arithmeticCoding(fileContent,outputFileName)
+	arithmeticCodingDecode(inputFilePath)
 
 #it calculates the file size as if each binary bigit had a size of 1-bit, simulating a real compression state.
 print "Original video file size: " + str(inputFileSize) + " bytes"
