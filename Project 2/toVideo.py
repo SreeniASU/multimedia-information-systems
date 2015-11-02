@@ -30,14 +30,16 @@ if __name__ == '__main__':
         elif compression_option == 4:
             filepath = decodeArithmetic(frames)
         else:
-            print("Unknown compression option " + str(option))
+            print("Unknown compression option " + str(compression_option))
 
-    initials, frames = util.parseFile(filename)
+    initials, frames = util.parseFile(filepath)
 
-    if ext == 'spq' or ext == 'spc':
-        result = spcToVideo(frames, option)
-    elif ext == 'tpq' or ext == 'tpc':
-        result = tpcToVideo(initials, frames, option)
+    if ext == 'spq' or ext == 'spc' or ext == 'spv':
+        result = spcToVideo(frames, coding_option)
+    elif ext == 'tpq' or ext == 'tpc' or ext == 'tpv':
+        result = tpcToVideo(initials, frames, coding_option)
+    else:
+        print("Unknown extension " + str(ext))
 
     tempVideo = cv2.VideoWriter(os.path.basename(path).split('.', 1)[0] + ".avi", cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
     for frame in result:
