@@ -22,7 +22,7 @@ from decimal import *
 
 getcontext().prec = 20000 #precision of the floating point numbers
 
-def LZW(file_content,outputFileName, rootDir):
+def LZW(fileContent,outputFileName, rootDir):
 	string = fileContent
 
 	print "Creating dictionary..."
