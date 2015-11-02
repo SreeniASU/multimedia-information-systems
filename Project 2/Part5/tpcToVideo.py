@@ -31,6 +31,7 @@ def stringToMatrix(matrixString):
 
 def uncodeTPC2(initials, frames):
     result = np.empty_like(frames, dtype=np.uint8)
+    print initials
     lastFrame = np.array(initials[0], dtype=np.uint8)
     for i in range(len(frames)):
        result[i] = np.add(lastFrame, frames[i])

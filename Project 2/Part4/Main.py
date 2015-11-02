@@ -22,7 +22,7 @@ from decimal import *
 
 getcontext().prec = 20000 #precision of the floating point numbers
 
-def LZW(file_content,outputFileName):
+def LZW(file_content,outputFileName, rootDir):
 	string = fileContent
 
 	print "Creating dictionary..."
@@ -35,13 +35,13 @@ def LZW(file_content,outputFileName):
 	encoded_string = lzw.lzwEncoder(string,bitLength)
 	print "Data encoded!\n"
 
-	fileSize = writeToFile(3,1,encoded_string,dictionary,outputFileName)
+	fileSize = writeToFile(3,1,encoded_string,None,os.path.join(rootDir, outputFileName))
 
 	print "Finished!\n"
 
 	return fileSize
 	
-def shannonFano(file_content,outputFileName):
+def shannonFano(file_content,outputFileName, rootDir):
 	frequency = sf.stringFrequencyValues(file_content)
 
 	sf.selectionSort(frequency) #sorts the array based on the frequency...
@@ -57,13 +57,13 @@ def shannonFano(file_content,outputFileName):
 	print "Encoding data...\n"
 	encodedString = sf.encodeString(file_content,dictionary)
 
-	fileSize = writeToFile(2,1,encodedString,dictionary,outputFileName)
+	fileSize = writeToFile(2,1,encodedString,dictionary,os.path.join(rootDir, outputFileName))
 
 	print "Finished!\n"
 
 	return fileSize
 
-def arithmeticCoding(file_content, outputFileName):
+def arithmeticCoding(file_content, outputFileName, rootDir):
 	file_content = ac.updateString(file_content)
 
 	print "Creating dictionary...\n"
@@ -76,14 +76,16 @@ def arithmeticCoding(file_content, outputFileName):
 	print "Encoding data...\n"
 	code = ac.arithmetic_encode(frequency_interval)
 
-	fileSize = writeToFile(4,1,code,dictionary,outputFileName)
+	fileSize = writeToFile(4,1,code,dictionary,os.path.join(rootDir, outputFileName))
 
+	'''
 	print "Decoding data...\n"
 	decoded_string = ac.arithmetic_decode(code,dictionary)
 
 	writeToFile(4,0,decoded_string,None,outputFileName)
 
 	print "Finished!\n"
+	'''
 
 	return fileSize
 
@@ -123,7 +125,7 @@ def LZWDecode(file_path):
 	#Decoding part - Should not be on Part IV
 
 	with open(file_path,'r') as f:
- 		content = f.readlines()
+ 		content = f.read()
 
 	if "tpv" in file_path:
 		file_path = file_path.strip("_3.tpv") + ".tpq"
@@ -132,7 +134,7 @@ def LZWDecode(file_path):
 
 	print "Decoding data..."
 	bitLength = input('Please enter a dictionary size(sufficient size is 256): ')
-	decoded_string = lzw.lzwDecoder(content,bitLength)
+	decoded_string = lzw.lzwDecoder(ast.literal_eval(content),bitLength)
 	print "Decoding finished!\n"
 
 	fileSize = writeToFile(3,0,decoded_string,None,file_path)
@@ -148,8 +150,8 @@ def writeToFile(option,type,data,dictionary,outputFileName):
 		#--------------------------------------------------------
 		#file name handling for output file
 		outputFileName = outputFileName[:outputFileName.find('.')] + '_' + str(option) + outputFileName[outputFileName.find('.'):]
-		output_file_path = 'Data/' + outputFileName
-		output_file = open(output_file_path,'w')
+		print(outputFileName)
+		output_file = open(outputFileName,'w')
 		#--------------------------------------------------------
 
 		output = ""
@@ -234,37 +236,38 @@ def getDicionaryFromFile(encoded_file):
 #------------------------------------------------------------------------------------------------------------------
 
 
-rootDir = util.safeGetDirectory()
-allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-inputFileName =  util.getVideoFile(allFiles)
+if __name__ == '__main__':
+    rootDir = util.safeGetDirectory()
+    allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
+    inputFileName =  util.getVideoFile(allFiles)
 
-#reads the input file name to check if it contains either spacial or temporal predictive coding data
-predictive_type = inputFileName[inputFileName.find('.') + 1:inputFileName.find('.') + 2]
+    #reads the input file name to check if it contains either spacial or temporal predictive coding data
+    predictive_type = inputFileName[inputFileName.find('.') + 1:inputFileName.find('.') + 2]
 
-inputFilePath = rootDir + "/" + inputFileName
+    inputFilePath = rootDir + "/" + inputFileName
 
-inputFile = open(inputFilePath,'r')
+    inputFile = open(inputFilePath,'r')
 
-fileContent = inputFile.read()
-inputFileSize = len(fileContent)
+    fileContent = inputFile.read()
+    inputFileSize = len(fileContent)
 
-codingType = util.selectCodingOption()
+    codingType = util.selectCodingOption()
 
-outputfileSize = 0
-outputFileName = inputFileName[:inputFileName.find('.')] + '.' + predictive_type + 'pv'
-if (codingType == 1):
-	#no coding
-	outputfileSize = writeToFile(1,1,fileContent,None,outputFileName)
-elif (codingType == 2):
-	outputfileSize = shannonFano(fileContent,outputFileName)
-	# shannonFanoDecode(inputFilePath)
-elif (codingType == 3):
-	outputfileSize = LZW(fileContent,outputFileName)
-	# LZWDecode(inputFilePath)
-elif (codingType == 4):
-	# outputfileSize = arithmeticCoding(fileContent,outputFileName)
-	arithmeticCodingDecode(inputFilePath)
+    outputfileSize = 0
+    outputFileName = inputFileName[:inputFileName.find('.')] + '.' + predictive_type + 'pv'
+    if (codingType == 1):
+        #no coding
+        outputfileSize = writeToFile(1,1,fileContent,None,outputFileName)
+    elif (codingType == 2):
+        outputfileSize = shannonFano(fileContent,outputFileName, rootDir)
+        # shannonFanoDecode(inputFilePath)
+    elif (codingType == 3):
+        outputfileSize = LZW(fileContent,outputFileName, rootDir)
+        # LZWDecode(inputFilePath)
+    elif (codingType == 4):
+        outputfileSize = arithmeticCoding(fileContent,outputFileName, rootDir)
+        # arithmeticCodingDecode(inputFilePath)
 
-#it calculates the file size as if each binary bigit had a size of 1-bit, simulating a real compression state.
-print "Original video file size: " + str(inputFileSize) + " bytes"
-print "Encoded video file size: " + str(outputfileSize) + " bytes"
+    #it calculates the file size as if each binary bigit had a size of 1-bit, simulating a real compression state.
+    print "Original video file size: " + str(inputFileSize) + " bytes"
+    print "Encoded video file size: " + str(outputfileSize) + " bytes"
