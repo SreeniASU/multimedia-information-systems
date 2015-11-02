@@ -67,13 +67,11 @@ def frequencyInterval(string,dictionary):
 	i = 0
 	char = string[i]
 	while (not terminate):
-		# print 'char: ' + char
 		rng = high - low
 
 		high = dictionary[char][1] * rng + low
 
 		low = dictionary[char][0] * rng + low
-		print (low, high)
 
 		if (char == terminator):
 			"""if char is the terminator, there is no need to execute
@@ -118,33 +116,3 @@ def arithmetic_decode(bin_code,dictionary):
 		decimal_value = (decimal_value - low)/rng
 
 	return decoded_string
-"""
-string = 'CAEE'
-string = updateString(string)
-dictionary = createDictionary(string)
-
-# print dictionary
-
-# string = 'CAEE$'
-# string = '210$'
-# dictionary = {'2':[0,0.2],'1':[0.2,0.6],'0':[0.6,0.9],terminator:[0.9,1]}
-# dictionary = {'A':[0,0.2],'B':[0.2,0.3],'C':[0.3,0.5],'D':[0.5,0.55],'E':[0.55,0.85],'F':[0.85,0.9],terminator:[0.9,1]}
-
-
-#first, the final frequency interval is calculated for the given string
-frequency_interval = frequencyInterval(string,dictionary)
-
-print "Frequency interval: " + str(frequency_interval)
-
-code = arithmetic_encode(frequency_interval)
-
-decoded_string = arithmetic_decode(code,dictionary)
-
-print 'Original string: ' + string
-print 'Encoded string: ' + code
-print "Decoded string: " + decoded_string
-
-if (decoded_string == string):
-	print "Decoding was successful!"
-	
-"""

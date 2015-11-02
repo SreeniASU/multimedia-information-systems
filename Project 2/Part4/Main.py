@@ -112,8 +112,6 @@ def shannonFanoDecode(file_path):
 	decoded_string = sf.decodeString(content,dictionary)
 	print "Decoding finished!\n"
 
-	print file_path
-
 	fileSize = writeToFile(3,0,decoded_string,None,file_path)
 
 	return file_path
@@ -134,8 +132,6 @@ def LZWDecode(file_path):
 	bitLength = input('Please enter a dictionary size(sufficient size is 256): ')
 	decoded_string = lzw.lzwDecoder(content,bitLength)
 	print "Decoding finished!\n"
-
-	print (file_path)
 
 	fileSize = writeToFile(3,0,decoded_string,None,file_path)
 
@@ -172,7 +168,7 @@ def writeToFile(option,type,data,dictionary,outputFileName):
 		fileSize = len(data)
 	else:
 		fileSize = len(data)/8
-	print fileSize
+
 	if (dictionary):
 		fileSize += len(str(dictionary))
 		print len(str(dictionary))
