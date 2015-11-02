@@ -64,13 +64,13 @@ def spcToVideo(frames, option):
     if option == 1:
         result = np.array(frames, dtype=np.uint8)
     elif option == 2:
-        result = uncodePC2(frames)
+        result = uncodeSPC2(frames)
     elif option == 3:
-        result = uncodePC3(frames)
+        result = uncodeSPC3(frames)
     elif option == 4:
-        result = uncodePC4(frames)
+        result = uncodeSPC4(frames)
     elif option == 5:
-        result = uncodePC5(frames)
+        result = uncodeSPC5(frames)
     else:
         print("Unknown option " + str(option))
 

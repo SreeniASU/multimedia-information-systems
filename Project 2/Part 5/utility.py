@@ -39,7 +39,7 @@ def parseFile(filepath):
             else:
                initString += line     # adds all lines of initial value of a frame to init.
         else:
-            result = re.match("< f(?P<f>\d+),\((?P<x>\d),(?P<y>\d)\), (?P<e>-?\d+(.*)?) >\n", line)
+            result = re.match("(?P<f>\d+),(?P<x>\d),(?P<y>\d),(?P<e>-?\d+(.*)?)\n", line)
             if result:
                 f = int(result.group("f")) - 1
                 x = int(result.group("x"))
