@@ -6,7 +6,7 @@ import sys
 import numpy as np
 from os import listdir
 from os.path import isfile,join
-import utility as util
+import Utility as util
 import math
 
 # For option 1, we perform no predictive coding, simply
@@ -91,32 +91,8 @@ def writeToFile(file, values,frameNum):
 
     return frameError
 
-if __name__ == '__main__':
-    # If arguments were not provided in command line arguments,
-    # prompt the user
-    if (len(sys.argv) == 1):
-        rootDir = util.safeGetDirectory()
-        allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-        videoForProcessing = util.getVideoFile(allFiles)
-        videoName = os.path.join(rootDir, videoForProcessing)
-        x,y = util.getPixelRegion()
-        encodingOption = util.getEncodingOption()
-    elif (len(sys.argv) == 5):
-        videoForProcessing = os.path.basename(sys.argv[1])
-        videoName = os.path.join(os.path.dirname(__file__), sys.argv[1])
-        x = int(sys.argv[2])
-        y = int(sys.argv[3])
-        encodingOption = sys.argv[4]
-    else:
-        print("error: must have either 0 arguments or 5 arguments of the form\npython predictive_coding.py file x y p\n")
-
-    print("Running PC " + encodingOption + " on " + videoForProcessing)
-
-    video = cv2.VideoCapture(videoName)
-
-    fileName = videoForProcessing.strip('.mp4') + "_" + encodingOption +".tpc"
-    outputFile = open(fileName, 'w')
-
+def temporalCoding(video, x, y, encodingOption, outputFile):
+    print("Running temporal predictive coding option " + encodingOption + "...")
     frameNum = 0
     yFrameValues =np.ndarray
     t1= []
@@ -185,3 +161,31 @@ if __name__ == '__main__':
         print("No error since no predictive coding was done")
     else:
         print("Total error is: " + str(totalError))
+
+if __name__ == '__main__':
+    # If arguments were not provided in command line arguments,
+    # prompt the user
+    if (len(sys.argv) == 1):
+        rootDir = util.safeGetDirectory()
+        allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
+        videoForProcessing = util.getVideoFile(allFiles)
+        videoName = os.path.join(rootDir, videoForProcessing)
+        x,y = util.getPixelRegion()
+        encodingOption = util.getEncodingOption()
+    elif (len(sys.argv) == 5):
+        videoForProcessing = os.path.basename(sys.argv[1])
+        videoName = os.path.join(os.path.dirname(__file__), sys.argv[1])
+        x = int(sys.argv[2])
+        y = int(sys.argv[3])
+        encodingOption = sys.argv[4]
+    else:
+        print("error: must have either 0 arguments or 5 arguments of the form\npython predictive_coding.py file x y p\n")
+
+    print("Running PC " + encodingOption + " on " + videoForProcessing)
+
+    video = cv2.VideoCapture(videoName)
+
+    fileName = videoForProcessing.strip('.mp4') + "_" + encodingOption +".tpc"
+    outputFile = open(fileName, 'w')
+
+    temporalCoding(video, x, y, outputFile)

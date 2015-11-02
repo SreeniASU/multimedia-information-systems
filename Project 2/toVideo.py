@@ -45,7 +45,9 @@ if __name__ == '__main__':
     else:
         print("Unknown extension " + str(ext))
 
-    tempVideo = cv2.VideoWriter(os.path.basename(inputFileName).split('.', 1)[0] + ".avi", cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
+    outputFile = os.path.basename(inputFileName).split('.', 1)[0] + ".avi"
+    print("Writing file to " + outputFile)
+    tempVideo = cv2.VideoWriter(outputFile, cv2.cv.CV_FOURCC('m', 'p', '4', 'v'), 29.41176470588235, (10, 10), False)
     for frame in result:
         rgbResult = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
         tempVideo.write(rgbResult)

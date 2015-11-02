@@ -39,4 +39,4 @@ def getEncodingOption():
     return option
 
 def getPixelRegion():
-    return input("Enter the origin of the 10x10 pixel region: ")
+    return input("Enter the origin of the 10x10 pixel region (e.g. 70,70): ")

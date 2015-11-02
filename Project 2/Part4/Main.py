@@ -12,7 +12,7 @@
 
 import os
 from os import listdir
-from os.path import isfile,join
+from os.path import isfile,join,basename
 import Utility as util
 import shannon_fano as sf
 import lzw
@@ -197,18 +197,10 @@ def arithmeticCodingDecode(file_path):
 	end = content.find("~$!*")
 
 	string_dictionary = content[start:end]
-	# content.replace(content[start:end],'')
 	content = content[end + 4:]
-
-	print start,end
-	print
-	print
 
 	string_dictionary = string_dictionary.replace("Decimal(","")
 	string_dictionary = string_dictionary.replace(")","")
-
-	# print string_dictionary
-
 
 	dictionary = ast.literal_eval(string_dictionary)
 
@@ -216,10 +208,7 @@ def arithmeticCodingDecode(file_path):
 		dictionary[symbol][0] = Decimal(dictionary[symbol][0])
 		dictionary[symbol][1] = Decimal(dictionary[symbol][1])
 
-	# raw_input("press return")
-
 	print dictionary
-
 
 	print "Decoding data...\n"
 	decoded_string = ac.arithmetic_decode(content,dictionary)
@@ -234,6 +223,30 @@ def getDicionaryFromFile(encoded_file):
 	#gets and file object as a pointer and extracts the dictionary from it
 	pass
 #------------------------------------------------------------------------------------------------------------------
+def compress(inputFilePath, codingType, rootDir):
+    inputFile = open(inputFilePath,'r')
+
+    fileContent = inputFile.read()
+    inputFileSize = len(fileContent)
+    inputFileName =  basename(inputFilePath)
+    predictive_type = inputFileName[inputFileName.find('.') + 1:inputFileName.find('.') + 2]
+
+
+    outputfileSize = 0
+    outputFileName = inputFileName[:inputFileName.find('.')] + '.' + predictive_type + 'pv'
+    if (codingType == 1):
+        outputfileSize = writeToFile(1,1,fileContent,None,outputFileName)
+    elif (codingType == 2):
+        outputfileSize = shannonFano(fileContent,outputFileName, rootDir)
+    elif (codingType == 3):
+        outputfileSize = LZW(fileContent,outputFileName, rootDir)
+    elif (codingType == 4):
+        outputfileSize = arithmeticCoding(fileContent,outputFileName, rootDir)
+
+    #it calculates the file size as if each binary digit had a size of 1-bit, simulating a real compression state.
+    print "Original video file size: " + str(inputFileSize) + " bytes"
+    print "Encoded video file size: " + str(outputfileSize) + " bytes"
+    return outputFileName
 
 
 if __name__ == '__main__':
@@ -242,32 +255,8 @@ if __name__ == '__main__':
     inputFileName =  util.getVideoFile(allFiles)
 
     #reads the input file name to check if it contains either spacial or temporal predictive coding data
-    predictive_type = inputFileName[inputFileName.find('.') + 1:inputFileName.find('.') + 2]
 
     inputFilePath = rootDir + "/" + inputFileName
-
-    inputFile = open(inputFilePath,'r')
-
-    fileContent = inputFile.read()
-    inputFileSize = len(fileContent)
-
     codingType = util.selectCodingOption()
 
-    outputfileSize = 0
-    outputFileName = inputFileName[:inputFileName.find('.')] + '.' + predictive_type + 'pv'
-    if (codingType == 1):
-        #no coding
-        outputfileSize = writeToFile(1,1,fileContent,None,outputFileName)
-    elif (codingType == 2):
-        outputfileSize = shannonFano(fileContent,outputFileName, rootDir)
-        # shannonFanoDecode(inputFilePath)
-    elif (codingType == 3):
-        outputfileSize = LZW(fileContent,outputFileName, rootDir)
-        # LZWDecode(inputFilePath)
-    elif (codingType == 4):
-        outputfileSize = arithmeticCoding(fileContent,outputFileName, rootDir)
-        # arithmeticCodingDecode(inputFilePath)
-
-    #it calculates the file size as if each binary bigit had a size of 1-bit, simulating a real compression state.
-    print "Original video file size: " + str(inputFileSize) + " bytes"
-    print "Encoded video file size: " + str(outputfileSize) + " bytes"
+    compress(inputFilePath, codingType, rootDir)

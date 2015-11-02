@@ -6,91 +6,57 @@ import sys
 import numpy as np
 from os import listdir
 from os.path import isfile,join
-import utility as util
+import Part1.Main as tpc
+import Part2.Main as spc
+import Part3.Main as quant
+import Part4.Main as comp
+import Part1.Utility as tpcUtil
+import Part2.Utility as spcUtil
+import Part4.Utility as cmpUtil
 import math
+
+def getCoding():
+    while 1:
+        try:
+            option = input("Which predictive coding do you want to use?\n" +
+                         "1: Temporal coding\n" +
+                         "2: Spatial coding\n> ")
+            if option > 2 or option < 1:
+                print(str(option) + " is not a valid selection. Please make a different selection.\n")
+            else:
+                print("Option: " + str(math.floor(option)) + " selected.")
+                return math.floor(option)
+        except:
+            print(str(option) + " is not a valid input. Please try again.\n")
 
 if __name__ == '__main__':
     # If arguments were not provided in command line arguments,
     # prompt the user
-    rootDir = util.safeGetDirectory()
+    rootDir = tpcUtil.safeGetDirectory()
     allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-    videoForProcessing = util.getVideoFile(allFiles)
+    videoForProcessing = tpcUtil.getVideoFile(allFiles)
     videoName = os.path.join(rootDir, videoForProcessing)
-    x,y = util.getPixelRegion()
-    encodingOption = util.getEncodingOption()
-
-    print("Running PC " + encodingOption + " on " + videoForProcessing)
-
+    print("Reading video file...")
     video = cv2.VideoCapture(videoName)
+    x,y = tpcUtil.getPixelRegion()
+    coding = getCoding()
 
-    fileName = videoForProcessing.strip('.mp4') + "_" + encodingOption +".tpc"
-    outputFile = open(fileName, 'w')
+    if coding == 1:
+        encodingOption = tpcUtil.getEncodingOption()
+        pcFileName = videoName.strip('.mp4') + "_" + encodingOption +".tpc"
+        outputFile = open(pcFileName, 'w')
+        tpc.temporalCoding(video, x, y, encodingOption, outputFile)
+    elif coding == 2:
+        encodingOption = spcUtil.getEncodingOption()
+        pcFileName = videoName.strip('.mp4') + "_" + encodingOption +".spc"
+        outputFile = open(pcFileName, 'w')
+        spc.spatialCoding(video, x, y, encodingOption, outputFile)
 
-    frameNum = 0
-    yFrameValues =np.ndarray
-    t1= []
-    t2= []
-    t3= []
-    t4= []
-    count =0
-    totalError = 0
+    print("Coded file saved to " + pcFileName)
 
-    while(video.isOpened()):
-        count += 1
-        channels = 0
-        ret,frame = video.read()
-        if ret: #if video is still running...
-            lastFrame = yFrameValues
-            frameNum += 1
+    quantizeOption = quant.getOption()
+    quantizeFileName = quant.quantize(pcFileName, quantizeOption)
+    print("Quantized file saved to " + quantizeFileName)
 
-            croppedFrame = frame[x:x+10, y:y+10]
-            yFrameValues = cv2.cvtColor(croppedFrame, cv2.COLOR_BGR2GRAY)
-
-            if frameNum ==1:
-                t4 = yFrameValues
-                t3 = yFrameValues
-                t2 = yFrameValues
-                t1 = yFrameValues
-            elif frameNum ==2:
-                t4 = lastFrame
-                t3 = lastFrame
-                t2 = lastFrame
-                t1 = lastFrame
-            elif frameNum ==3:
-                t4 = t1
-                t3 = t1
-                t2 = t1
-                t1 = lastFrame
-            elif frameNum ==4:
-                t4 = t2
-                t3 = t2
-                t2 = t1
-                t1 = lastFrame
-            else:
-                t4 = t3
-                t3 = t2
-                t2 = t1
-                t1 = lastFrame
-
-
-            if encodingOption == "1":
-                writeToFile(outputFile, pc1(yFrameValues), frameNum)
-            elif encodingOption == "2":
-                if frameNum == 1:
-                    outputFile.write("{\n" + str(yFrameValues) + "\n}\n")
-                totalError += writeToFile(outputFile, pc2(yFrameValues,t1), frameNum)
-            elif encodingOption == "3":
-                if frameNum == 1 or frameNum == 2:
-                    outputFile.write("{\n" + str(yFrameValues) + "\n}\n")
-                totalError += writeToFile(outputFile, pc3(yFrameValues,t1,t2), frameNum)
-            elif encodingOption == "4":
-                if frameNum == 1 or frameNum == 2 or frameNum == 3 or frameNum == 4:
-                    outputFile.write("{\n" + str(yFrameValues) + "\n}\n")
-                totalError += writeToFile(outputFile, pc4(yFrameValues,t1,t2,t3,t4), frameNum)
-        else:
-            break
-
-    if encodingOption == "1":
-        print("No error since no predictive coding was done")
-    else:
-        print("Total error is: " + str(totalError))
+    compressionOption = cmpUtil.selectCodingOption()
+    compressionFileName = comp.compress(quantizeFileName, compressionOption, rootDir)

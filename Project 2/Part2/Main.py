@@ -87,29 +87,12 @@ def writeToFile(file, values, frameNum, error):
 
             file.write(contents)
 
-
     totalAbsoluteErrorContent = "Total Absolute Error for this frame is " + str(error) + "\n"
     file.write(totalAbsoluteErrorContent)
 
-if __name__ == '__main__':
-    # Directory in which all the video files are pesent
-    rootDir = util.safeGetDirectory()
-
-    # Get all the files from the root directory
-    allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-
-    #Get the video for processing
-    videoName = util.getVideoFile(allFiles)
-    videoForProcessing = join(rootDir, videoName)
-
-    option = util.getEncodingOption()
-    x,y = util.getPixelRegion()
-
-    fileName = videoName.strip('.mp4') + "_" + option + ".spc"
-    outputFile = open(fileName, 'w')
-
+def spatialCoding(video, x, y, option, outputFile):
     #Get all the frames from the video
-    video = cv2.VideoCapture(videoForProcessing)
+    print("Running spatial predictive coding " + option + "...")
     ret, frame = video.read()
     framesList = []
     frameNum = 0
@@ -136,3 +119,22 @@ if __name__ == '__main__':
     time.sleep(1)
     outputFile.close()
 
+if __name__ == '__main__':
+    # Directory in which all the video files are pesent
+    rootDir = util.safeGetDirectory()
+
+    # Get all the files from the root directory
+    allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
+
+    #Get the video for processing
+    videoName = util.getVideoFile(allFiles)
+    videoForProcessing = join(rootDir, videoName)
+
+    option = util.getEncodingOption()
+    x,y = util.getPixelRegion()
+
+    fileName = videoName.strip('.mp4') + "_" + option + ".spc"
+    outputFile = open(fileName, 'w')
+    video = cv2.VideoCapture(videoForProcessing)
+
+    spatialCoding(video, outputFile)
