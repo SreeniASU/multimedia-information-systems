@@ -78,6 +78,7 @@ def pc4(yFrameValues,t1,t2,t3,t4):
 
     return result
 
+## utility function for writing frames to the file
 def writeToFile(file, values,frameNum):
     rows = len(values)
     cols = len(values[0])
@@ -113,6 +114,8 @@ def temporalCoding(video, x, y, encodingOption, outputFile):
             croppedFrame = frame[x:x+10, y:y+10]
             yFrameValues = cv2.cvtColor(croppedFrame, cv2.COLOR_BGR2GRAY)
 
+            # The initialization of these historical frames allows the initial
+            # frames to behave normally even without sufficient data
             if frameNum ==1:
                 t4 = yFrameValues
                 t3 = yFrameValues

@@ -59,7 +59,7 @@ def selectCodingOption():
         print "1. No compression"
         print "2. Shannon-Fano coding"
         print "3. LZW coding"
-        print "4. Arithmetic coding"
+        print "4. Arithmetic coding (WARNING! very slow)"
         
         option = int(raw_input())
 

@@ -42,11 +42,13 @@ if __name__ == '__main__':
     coding = getCoding()
 
     if coding == 1:
+        # See the Part1 folder for more information about these functions
         encodingOption = tpcUtil.getEncodingOption()
         pcFileName = videoName.strip('.mp4') + "_" + encodingOption +".tpc"
         outputFile = open(pcFileName, 'w')
         tpc.temporalCoding(video, x, y, encodingOption, outputFile)
     elif coding == 2:
+        # See the Part2 folder for more information about these functions
         encodingOption = spcUtil.getEncodingOption()
         pcFileName = videoName.strip('.mp4') + "_" + encodingOption +".spc"
         outputFile = open(pcFileName, 'w')
@@ -54,9 +56,11 @@ if __name__ == '__main__':
 
     print("Coded file saved to " + pcFileName)
 
+    # See the Part3 folder for more information on these functions
     quantizeOption = quant.getOption()
     quantizeFileName = quant.quantize(pcFileName, quantizeOption)
     print("Quantized file saved to " + quantizeFileName)
 
+    # See the Part4 folder for more information on these functions
     compressionOption = cmpUtil.selectCodingOption()
     compressionFileName = comp.compress(quantizeFileName, compressionOption, rootDir)
