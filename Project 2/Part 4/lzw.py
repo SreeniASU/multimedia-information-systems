@@ -1,4 +1,4 @@
-
+from cStringIO import StringIO
 #ISSUE: codes for each character have to be binaries, not decimals
 
 def createDictionary(string):
@@ -47,7 +47,55 @@ def updateEncodedString(encoded_string,dictionary):
 
 	return encoded_string
 
-def lzwEncoder(string,dictionary):
+def lzwEncoder(string,bitLength):
+
+	dictionary = dict((chr(i), chr(i)) for i in xrange(bitLength))
+
+	output = ""
+	encoded = []
+	for char in string:
+		pattern = output + char
+
+		if pattern in dictionary:
+			output = pattern
+		else:
+			encoded.append(dictionary[output])
+			dictionary[pattern] = bitLength
+			bitLength += 1
+			output = char #reset out pattern
+
+	if (output):
+		encoded.append(dictionary[output])
+
+	return encoded
+
+def lzwDecoder(encoded,bitLength):
+	dictionary = dict((chr(i), chr(i)) for i in xrange(bitLength))
+
+	decoded = StringIO()
+
+	output = encoded.pop(0)
+	decoded.write(output)
+
+	for char in encoded:
+		if (char in dictionary):
+			entry = dictionary[char]
+		elif (char == None):
+			entry = output + output[0]
+
+		decoded.write(entry)
+
+		dictionary[bitLength] = output + entry[0]
+		bitLength += 1
+
+		output = entry
+
+	return decoded.getvalue()
+
+
+
+
+"""def lzwEncoder(string,dictionary):
 
 	s = string[0]
 	output_code = [] #code to be outputed at the end(treated as an array)
@@ -85,7 +133,9 @@ def lzwDecoder(code,dictionary):
 
 	return decoded_string
 """
-string = "kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}kjasb,mczcbeguqweoqwiepoqwkacsksadjashdgywguehoewihnzcbzn<>{}"
+
+"""
+string = "hellooasdjpoasjopasd"
 
 dictionary = createDictionary(string)
 
@@ -93,8 +143,8 @@ print ("Original string: " + string)
 
 encoded_string = lzwEncoder(string,dictionary)
 
-encoded_string = updateEncodedString(encoded_string,dictionary)
-dictionary = updateDictionary(dictionary)
+# encoded_string = updateEncodedString(encoded_string,dictionary)
+# dictionary = updateDictionary(dictionary)
 print 'string: ' + string
 
 print("Encoded string: " + ''.join(encoded_string))
@@ -105,4 +155,6 @@ print("Decoded string: " + decoded_string)
 
 if (string == decoded_string):
 	print "Decoding was successful!"
-"""
+	"""
+
+string = ""

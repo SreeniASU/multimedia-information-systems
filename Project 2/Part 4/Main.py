@@ -10,12 +10,14 @@
 	- Decode the data contained on the encoded file
 """
 
+import os
 from os import listdir
 from os.path import isfile,join
 import Utility as util
 import shannon_fano as sf
 import lzw
 import arithmetic_coding as ac
+import ast
 
 
 def LZW(file_content,outputFileName):
@@ -25,42 +27,15 @@ def LZW(file_content,outputFileName):
 	dictionary = lzw.createDictionary(string)
 	print "Dictionary created!\n"
 
-	# print ("Original string: " + string)
+	bitLength = input('Please enter a dictionary size(sufficient size is 256): ')
 
 	print "Encoding data..."
-	encoded_string = lzw.lzwEncoder(string,dictionary)
+	encoded_string = lzw.lzwEncoder(string,bitLength)
 	print "Data encoded!\n"
-
-	print "Updating encoded string to binary values..."
-	encoded_string = lzw.updateEncodedString(encoded_string,dictionary)
-	print "Values updated!\n"
-
-	print "Updating dictionary values to binary values..."
-	dictionary = lzw.updateDictionary(dictionary)
-	print "Values updated!"
 
 	fileSize = writeToFile(3,1,encoded_string,dictionary,outputFileName)
 
-	# print("Encoded string: " + ''.join(encoded_string))
-
-	#------------------------------------------------------------
-	#Decoding part - Should not be on Part IV
-	# encoded_file = open('X_Y_3','r')
-
-	# dictionary = getDicionaryFromFile(encoded_file)
-
-	print "Decoding data..."
-	decoded_string = lzw.lzwDecoder(encoded_string,dictionary)
-	print "Decoding finished!\n"
-
-	writeToFile(3,0,decoded_string,None,outputFileName)
-
 	print "Finished!\n"
-	#------------------------------------------------------------
-	# print("Decoded string: " + decoded_string)
-
-	# if (string == decoded_string):
-		# print "Decoding was successful!"
 
 	return fileSize
 	
@@ -117,6 +92,66 @@ def arithmeticCoding(file_content, outputFileName):
 
 	return fileSize
 
+def shannonFanoDecode(file_path):
+	#------------------------------------------------------------
+	#Decoding part - Should not be on Part IV
+
+	with open(file_path,'r') as f:
+ 		content = f.read()
+
+	if "tpv" in file_path:
+		file_path = file_path.strip("_2.tpv") + ".tpq"
+	elif "spv" in file_path:
+		file_path = file_path.strip("_2.spv") + ".spq"
+
+
+	start = content.find("{'")
+	end = content.find("'} ")
+
+	print (start,end)
+
+	dictionary = content[start:end]
+	content.replace(content[start:end],'')
+
+	print dictionary
+	print
+	print content
+
+"""
+	print "Decoding data..."
+	decoded_string = sf.decodeString(content,dictionary)
+	print "Decoding finished!\n"
+
+	print (file_path)
+
+	fileSize = writeToFile(3,0,decoded_string,None,file_path)
+
+	return file_path
+"""
+
+def LZWDecode(file_path):
+	#------------------------------------------------------------
+	#Decoding part - Should not be on Part IV
+
+	with open(file_path,'r') as f:
+ 		content = f.readlines()
+
+	if "tpv" in file_path:
+		file_path = file_path.strip("_3.tpv") + ".tpq"
+	elif "spv" in file_path:
+		file_path = file_path.strip("_3.spv") + ".spq"
+
+	print "Decoding data..."
+	bitLength = input('Please enter a dictionary size(sufficient size is 256): ')
+	decoded_string = lzw.lzwDecoder(content,bitLength)
+	print "Decoding finished!\n"
+
+	print (file_path)
+
+	fileSize = writeToFile(3,0,decoded_string,None,file_path)
+
+	return file_path
+
 def writeToFile(option,type,data,dictionary,outputFileName):
 	#writes encoded data to file
 
@@ -132,13 +167,13 @@ def writeToFile(option,type,data,dictionary,outputFileName):
 
 		output = ""
 		if (dictionary):
-			output = str(dictionary)
+			output = str(dictionary) + ' '
 		output += str(data)
 		output_file.write(output.encode('utf-8'))
 
 	elif (type == 0):
 		print "Outputing decoded data to file...\n"
-		output_file = open('Data/output_test_decoded.tpc','w')
+		output_file = open(outputFileName,'w')
 		output_file.write(str(data))
 	
 	if (type == 0 or type == 1):
@@ -161,7 +196,7 @@ def getDicionaryFromFile(encoded_file):
 #------------------------------------------------------------------------------------------------------------------
 
 
-rootDir = '/Users/jake/Projects/multimedia-information-systems/Project 2/Part 1/data'#util.safeGetDirectory()
+rootDir = util.safeGetDirectory()
 allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
 inputFileName =  util.getVideoFile(allFiles)
 
@@ -183,9 +218,11 @@ if (codingType == 1):
 	#no coding
 	outputfileSize = writeToFile(1,1,fileContent,None,outputFileName)
 elif (codingType == 2):
-	outputfileSize = shannonFano(fileContent,outputFileName)
+	# outputfileSize = shannonFano(fileContent,outputFileName)
+	shannonFanoDecode(inputFilePath)
 elif (codingType == 3):
 	outputfileSize = LZW(fileContent,outputFileName)
+	# LZWDecode(inputFilePath)
 elif (codingType == 4):
 	outputfileSize = arithmeticCoding(fileContent,outputFileName)
 
@@ -193,4 +230,3 @@ elif (codingType == 4):
 print "Original video file size: " + str(inputFileSize) + " bytes"
 print "Encoded video file size: " + str(outputfileSize) + " bytes"
 
-# snr = 
