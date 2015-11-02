@@ -85,7 +85,7 @@ def writeToFile(file, values,frameNum):
 
     for i in range(rows):
         for j in range(cols):
-            contents = "< f" + str(frameNum) + ",(" + str(i) + "," + str(j) + "), " + str(values[i][j]) + " >\n"
+            contents = "<" + str(frameNum) + "," + str(i) + "," + str(j) + "," + str(values[i][j]) + "\n"
             frameError += abs(values[i][j])
             file.write(contents)
 

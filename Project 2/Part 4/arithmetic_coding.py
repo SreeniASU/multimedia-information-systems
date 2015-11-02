@@ -1,3 +1,4 @@
+import struct
 from decimal import *
 #library used to prevent rounding in large float numbers
 
@@ -7,6 +8,9 @@ from decimal import *
 getcontext().prec = 2000 #precision of the floating point numbers
 
 terminator = "$" #value that indicates end of string
+
+def binary(num):
+        return ''.join(bin(ord(c)).replace('0b', '').rjust(8, '0') for c in struct.pack('!f', num))
 
 def updateString(string):
 	#adds the terminator character if not present
@@ -55,7 +59,7 @@ def floatBinToDecimal(bin):
 
 	for i in range(0,len(bin)): 
 		# n += Decimal( str( int(bin[i])/Decimal( float(2**(i + 1)) ) ) )
-		n += Decimal( int(bin[i])/Decimal(2**(i + 1)) )  
+		n += Decimal( int(bin[i])*Decimal(2**(-(i + 1))) )  
 
 
 	return n
@@ -109,13 +113,16 @@ def frequencyInterval(string,dictionary):
 		for i in lst: nstr += str(i)
 		low = float(nstr)"""
 
+        print(low, high)
 	return low,high
 
 def arithmetic_encode(frequency_interval):
 	#encode the given string based on the interval "[low,high)"
 	low = frequency_interval[0]
 	high = frequency_interval[1]
-	code = ['0']
+        mid = (Decimal(0.5)*low + Decimal(0.5)*high)
+        code = mid
+        '''
 	k = 1
 
 	while(floatBinToDecimal(''.join(code)) < low):
@@ -128,8 +135,8 @@ def arithmetic_encode(frequency_interval):
 			code[k - 1] = '0'
 
 		k += 1
-
-	return ''.join(code) 
+        '''
+	return str(code)
 
 def find_symbol(value,dictionary):
 	for symbol in dictionary:
@@ -142,7 +149,8 @@ def arithmetic_decode(bin_code,dictionary):
 
 	decoded_string = ""
 	symbol = ""
-	decimal_value = floatBinToDecimal(bin_code)
+	decimal_value = Decimal(bin_code)
+        print(str(decimal_value))
 
 	while (symbol != terminator):
 		symbol = find_symbol(decimal_value,dictionary)

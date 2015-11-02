@@ -93,7 +93,7 @@ def shannonFano(file_content,outputFileName):
 
 	return fileSize
 
-def arithmeticCoding(file_content):
+def arithmeticCoding(file_content, outputFileName):
 	file_content = ac.updateString(file_content)
 
 	print "Creating dictionary...\n"
@@ -134,7 +134,7 @@ def writeToFile(option,type,data,dictionary,outputFileName):
 		if (dictionary):
 			output = str(dictionary)
 		output += str(data)
-		output_file.write(output)
+		output_file.write(output.encode('utf-8'))
 
 	elif (type == 0):
 		print "Outputing decoded data to file...\n"
@@ -161,9 +161,9 @@ def getDicionaryFromFile(encoded_file):
 #------------------------------------------------------------------------------------------------------------------
 
 
-rootDir = 'C:\Users\Crispino\Documents\GitHub\multimedia-information-systems\Project 2\Part 4\Data'#util.safeGetDirectory()
-# allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-inputFileName =  'test.tpc'#util.getVideoFile(allFiles)
+rootDir = '/Users/jake/Projects/multimedia-information-systems/Project 2/Part 1/data'#util.safeGetDirectory()
+allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
+inputFileName =  util.getVideoFile(allFiles)
 
 #reads the input file name to check if it contains either spacial or temporal predictive coding data
 predictive_type = inputFileName[inputFileName.find('.') + 1:inputFileName.find('.') + 2]
