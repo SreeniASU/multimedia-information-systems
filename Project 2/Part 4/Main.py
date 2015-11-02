@@ -57,14 +57,7 @@ def shannonFano(file_content,outputFileName):
 
 	fileSize = writeToFile(2,1,encodedString,dictionary,outputFileName)
 
-	decodedString = sf.decodeString(encodedString,dictionary)
-
-	writeToFile(2,0,decodedString,None,outputFileName)
-
 	print "Finished!\n"
-
-	if (decodedString == file_content):
-		print "Decoding was successful!"
 
 	return fileSize
 
@@ -96,6 +89,7 @@ def shannonFanoDecode(file_path):
 	#------------------------------------------------------------
 	#Decoding part - Should not be on Part IV
 
+	print "Opening file..."
 	with open(file_path,'r') as f:
  		content = f.read()
 
@@ -106,28 +100,23 @@ def shannonFanoDecode(file_path):
 
 
 	start = content.find("{'")
-	end = content.find("'} ")
+	end = content.find("~$!*")
 
-	print (start,end)
+	string_dictionary = content[start:end]
+	# content.replace(content[start:end],'')
+	content = content[end + 4:]
 
-	dictionary = content[start:end]
-	content.replace(content[start:end],'')
+	dictionary = ast.literal_eval(string_dictionary)
 
-	print dictionary
-	print
-	print content
-
-"""
 	print "Decoding data..."
 	decoded_string = sf.decodeString(content,dictionary)
 	print "Decoding finished!\n"
 
-	print (file_path)
+	print file_path
 
 	fileSize = writeToFile(3,0,decoded_string,None,file_path)
 
 	return file_path
-"""
 
 def LZWDecode(file_path):
 	#------------------------------------------------------------
@@ -167,7 +156,7 @@ def writeToFile(option,type,data,dictionary,outputFileName):
 
 		output = ""
 		if (dictionary):
-			output = str(dictionary) + ' '
+			output = str(dictionary) + '~$!*'
 		output += str(data)
 		output_file.write(output.encode('utf-8'))
 
@@ -213,13 +202,13 @@ inputFileSize = len(fileContent)
 codingType = util.selectCodingOption()
 
 outputfileSize = 0
-outputFileName = inputFileName[:inputFileName.find('.')] + '.' + predictive_type + 'pc'
+outputFileName = inputFileName[:inputFileName.find('.')] + '.' + predictive_type + 'pv'
 if (codingType == 1):
 	#no coding
 	outputfileSize = writeToFile(1,1,fileContent,None,outputFileName)
 elif (codingType == 2):
-	# outputfileSize = shannonFano(fileContent,outputFileName)
-	shannonFanoDecode(inputFilePath)
+	outputfileSize = shannonFano(fileContent,outputFileName)
+	# shannonFanoDecode(inputFilePath)
 elif (codingType == 3):
 	outputfileSize = LZW(fileContent,outputFileName)
 	# LZWDecode(inputFilePath)
@@ -229,4 +218,3 @@ elif (codingType == 4):
 #it calculates the file size as if each binary bigit had a size of 1-bit, simulating a real compression state.
 print "Original video file size: " + str(inputFileSize) + " bytes"
 print "Encoded video file size: " + str(outputfileSize) + " bytes"
-
