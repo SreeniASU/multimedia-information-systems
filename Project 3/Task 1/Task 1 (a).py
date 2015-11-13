@@ -48,12 +48,13 @@ def getContent(video):
         ret, frame = video.read()
         if ret:
             frameNum +=1
+            frameData.append("Frame: " + str(frameNum))
             yFrameValues = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             frameMax = np.amax(yFrameValues)
             frameMin = np.amin(yFrameValues)
             if frameMax > totalMax:
                 totalMax = frameMax
-            if  frameMin < totalMin:
+            if frameMin < totalMin:
                 totalMin = frameMin
             frameData.append(yFrameValues)
         else:
@@ -74,6 +75,66 @@ def getMValue():
             log(str(option) + " is not a valid input. Please try again.\n")
 
 
+def quantizeRegion(region, valuesPerBin, minValue, maxValue, frameNum):
+    #Beginning idea, need to figure out how I am going to get the region and the framenumber
+    regionRow = 0
+    regionCol = 0
+    occurancesInFrame = dict.fromkeys(range(minValue, maxValue), 0) #dictionary to contain how many times a value occurs
+    rows = len(region)
+    resultString = ""
+    for i in range(rows):
+        occurancesInFrame[region[i]] += 1
+        bottomBin = math.floor((region[i] - minValue) / valuesPerBin)
+        region[i] = minValue + (bottomBin + 0.5)*valuesPerBin
+
+    for key in occurancesInFrame:
+        resultString = "< " + frameNum + ", (" + regionRow + ", " + regionCol + ") ," + str(key) + ", " + str(occurancesInFrame[key]) + " >"
+    return resultString
+
+#From the smart people on stackoverflow
+#http://stackoverflow.com/questions/16856788/slice-2d-array-into-smaller-2d-arrays
+def blockshaped(arr, nrows, ncols):
+    """
+    Return an array of shape (n, nrows, ncols) where
+    n * nrows * ncols = arr.size
+
+    If arr is a 2D array, the returned array should look like n subblocks with
+    each subblock preserving the "physical" layout of arr.
+    """
+    h, w = arr.shape
+    return (arr.reshape(h//nrows, nrows, -1, ncols)
+               .swapaxes(1,2)
+               .reshape(-1, nrows, ncols))
+
+#def calculateCoordinates(width, index):
+#need a way to calculate the cooridinates for the region
+
+def quantize(frameData, fileName, minValue, maxValue):
+    m = 7 #getMValue()
+    print("Running quantization with " + str(m) + " bins...")
+
+    #saving some processing power here so we dont need to calculate these values for each iteration
+    result = list()
+    bins = pow(2,m)
+    valueRange = maxValue - minValue
+    valuesPerBin = valueRange / bins
+    frameNum = 0
+
+    #for each entry in frameData
+    for i in range(len(frameData)):
+        if "Frame" in frameData[i]:
+            frameNum = frameData[i].replace("Frame: ","")
+            continue
+        frameRegions = blockshaped(frameData[i],8,8)
+        #for each region of the frame
+        for j in range(len(frameRegions)):
+            #coord = calculateCoordinates(len(frameData[i]),j)
+            result.append(quantizeRegion(frameRegions[j], valuesPerBin, minValue, maxValue, frameNum))
+
+    outputFile = open(fileName, 'w')
+    ##writeToFile(outputFile,content,errors)
+    outputFile.close()
+    return fileName
 
 
 def writeToFile(outputFile,content, errors):
@@ -89,34 +150,6 @@ def writeToFile(outputFile,content, errors):
         outputFile.write(content[i])
 
     return
-
-def quantize(frameData, fileName, minValue, maxValue):
-    m = getMValue()
-    print("Running quantization with " + str(m) + " bins...")
-    result = list()
-    bins = pow(2,m)
-    valueRange = maxValue - minValue
-    valuesPerBin = valueRange / bins
-    row = 0
-    col = 0
-
-    #Beginning idea, need to figure out how I am going to get the region and the framenumber
-    occurancesInFrame = dict.fromkeys(range(minValue, maxValue), 0) #dictionary to contain how many times a value occurs
-    rows = len(region)
-    for i in range(rows):
-        occurancesInFrame[region[i]] += 1
-        bottomBin = math.floor((region[i] - minValue) / valuesPerBin)
-        region[i] = minValue + (bottomBin + 0.5)*valuesPerBin
-
-    for key in occurancesInFrame:
-        resultString = "< " + frameNum + ", (" + regionStart + ", " + regionEnd + ") ," + str(key) + ", " + str(occurancesInFrame[key]) + " >"
-        result.append()
-
-    outputFile = open(fileName, 'w')
-    ##writeToFile(outputFile,content,errors)
-    outputFile.close()
-    return fileName
-
 '''
 Main Method
 Prompts the user for an input file, a quantization option selection, and an m value.
