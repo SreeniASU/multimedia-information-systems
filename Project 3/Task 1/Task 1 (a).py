@@ -41,8 +41,8 @@ def getFile(files):
 
 def getContent(video):
     frameNum = 0
-    totalMax = 0
-    totalMin = 0
+    #totalMax = 0
+    #totalMin = 0
     frameData = list()
     while(video.isOpened()):
         ret, frame = video.read()
@@ -50,16 +50,16 @@ def getContent(video):
             frameNum +=1
             frameData.append("Frame: " + str(frameNum))
             yFrameValues = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            frameMax = np.amax(yFrameValues)
-            frameMin = np.amin(yFrameValues)
-            if frameMax > totalMax:
-                totalMax = frameMax
-            if frameMin < totalMin:
-                totalMin = frameMin
+            #frameMax = np.amax(yFrameValues)
+            #frameMin = np.amin(yFrameValues)
+            #if frameMax > totalMax:
+            #    totalMax = frameMax
+            #if frameMin < totalMin:
+            #   totalMin = frameMin
             frameData.append(yFrameValues)
         else:
             break
-    return frameData, totalMin, totalMax
+    return frameData#, totalMin, totalMax
 
 
 
@@ -75,20 +75,28 @@ def getMValue():
             log(str(option) + " is not a valid input. Please try again.\n")
 
 
-def quantizeRegion(region, valuesPerBin, minValue, maxValue, frameNum):
-    #Beginning idea, need to figure out how I am going to get the region and the framenumber
+def quantizeRegion(region, bins, frameNum):
     regionRow = 0
     regionCol = 0
+    minValue = np.amin(region)
+    maxValue = np.amax(region)
+    valueRange = maxValue - minValue    #quantization is block level so find these values here
+    valuesPerBin = valueRange / bins
     occurancesInFrame = dict.fromkeys(range(minValue, maxValue), 0) #dictionary to contain how many times a value occurs
     rows = len(region)
+    cols = len(region[0])
     resultString = ""
+
+    #what do i do with the quantized values?
     for i in range(rows):
-        occurancesInFrame[region[i]] += 1
-        bottomBin = math.floor((region[i] - minValue) / valuesPerBin)
-        region[i] = minValue + (bottomBin + 0.5)*valuesPerBin
+        for j in range(cols):
+            bottomBin = math.floor((region[i][j] - minValue) / valuesPerBin)
+            region[i][j] = minValue + (bottomBin + 0.5)*valuesPerBin
+            occurancesInFrame[region[i][j]] += 1
 
     for key in occurancesInFrame:
-        resultString = "< " + frameNum + ", (" + regionRow + ", " + regionCol + ") ," + str(key) + ", " + str(occurancesInFrame[key]) + " >"
+        if occurancesInFrame[key] > 0:   #for testing dont write 0 values
+            resultString += "< " + str(frameNum) + ", (" + str(regionRow) + ", " + str(regionCol) + ") ," + str(key) + ", " + str(occurancesInFrame[key]) + " >\n"
     return resultString
 
 #From the smart people on stackoverflow
@@ -109,27 +117,26 @@ def blockshaped(arr, nrows, ncols):
 #def calculateCoordinates(width, index):
 #need a way to calculate the cooridinates for the region
 
-def quantize(frameData, fileName, minValue, maxValue):
+def quantize(frameData, fileName):
     m = 7 #getMValue()
     print("Running quantization with " + str(m) + " bins...")
 
     #saving some processing power here so we dont need to calculate these values for each iteration
     result = list()
     bins = pow(2,m)
-    valueRange = maxValue - minValue
-    valuesPerBin = valueRange / bins
     frameNum = 0
 
     #for each entry in frameData
     for i in range(len(frameData)):
         if "Frame" in frameData[i]:
-            frameNum = frameData[i].replace("Frame: ","")
+            frameNum = frameData[i].replace("Frame: ", "")
             continue
+
         frameRegions = blockshaped(frameData[i],8,8)
         #for each region of the frame
         for j in range(len(frameRegions)):
             #coord = calculateCoordinates(len(frameData[i]),j)
-            result.append(quantizeRegion(frameRegions[j], valuesPerBin, minValue, maxValue, frameNum))
+            result.append(quantizeRegion(frameRegions[j], bins, frameNum))
 
     outputFile = open(fileName, 'w')
     ##writeToFile(outputFile,content,errors)
@@ -163,9 +170,10 @@ if __name__ == '__main__':
     fileName = rootDir + "/" + input_file
     video = cv2.VideoCapture(fileName)
 
-    frameData, totalMin, totalMax = getContent(video)
+    #frameData, totalMin, totalMax = getContent(video) #this is for quantization at video level
+    frameData = getContent(video)
 
-    outputName = quantize(frameData, fileName,totalMin,totalMax)
+    outputName = quantize(frameData, fileName)
     log(basename(outputName) + " created in location " + rootDir)
 
     '''
