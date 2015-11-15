@@ -75,14 +75,14 @@ def getMValue():
             log(str(option) + " is not a valid input. Please try again.\n")
 
 
-def quantizeRegion(region, bins, frameNum):
-    regionRow = 0
-    regionCol = 0
+def quantizeRegion(region, bins, frameNum, x, y):
     minValue = np.amin(region)
     maxValue = np.amax(region)
     valueRange = maxValue - minValue    #quantization is block level so find these values here
-    valuesPerBin = valueRange / bins
-    occurancesInFrame = dict.fromkeys(range(minValue, maxValue), 0) #dictionary to contain how many times a value occurs
+    valuesPerBin = valueRange / bins    #problem here when bin is greater than range
+    if(valueRange < bins):
+        valuesPerBin = 1
+    occurancesInFrame = dict.fromkeys(range(minValue, maxValue + 1), 0) #dictionary to contain how many times a value occurs
     rows = len(region)
     cols = len(region[0])
     resultString = ""
@@ -91,12 +91,12 @@ def quantizeRegion(region, bins, frameNum):
     for i in range(rows):
         for j in range(cols):
             bottomBin = math.floor((region[i][j] - minValue) / valuesPerBin)
-            region[i][j] = minValue + (bottomBin + 0.5)*valuesPerBin
+            region[i][j] = math.floor(minValue + (bottomBin + 0.5)*valuesPerBin)
             occurancesInFrame[region[i][j]] += 1
 
     for key in occurancesInFrame:
         if occurancesInFrame[key] > 0:   #for testing dont write 0 values
-            resultString += "< " + str(frameNum) + ", (" + str(regionRow) + ", " + str(regionCol) + ") ," + str(key) + ", " + str(occurancesInFrame[key]) + " >\n"
+            resultString += "< " + str(frameNum) + ", (" + str(x) + ", " + str(y) + ") ," + str(key) + ", " + str(occurancesInFrame[key]) + " >\n"
     return resultString
 
 #From the smart people on stackoverflow
@@ -114,8 +114,14 @@ def blockshaped(arr, nrows, ncols):
                .swapaxes(1,2)
                .reshape(-1, nrows, ncols))
 
-#def calculateCoordinates(width, index):
-#need a way to calculate the cooridinates for the region
+def calculateCoordinates(width, index):
+    x = 0
+    y = 0
+    blockLength = 8
+    x = (blockLength*index) % width
+    y = math.floor(((blockLength*index)/width) * blockLength)   #calculate y
+    return x,y
+
 
 def quantize(frameData, fileName):
     m = 7 #getMValue()
@@ -135,28 +141,21 @@ def quantize(frameData, fileName):
         frameRegions = blockshaped(frameData[i],8,8)
         #for each region of the frame
         for j in range(len(frameRegions)):
-            #coord = calculateCoordinates(len(frameData[i]),j)
-            result.append(quantizeRegion(frameRegions[j], bins, frameNum))
-
+            x,y = calculateCoordinates(len(frameData[i][0]), j)
+            result.append(quantizeRegion(frameRegions[j], bins, frameNum, x, y))
+            print("processed region " + str(j) + "of frame " + frameNum)
     outputFile = open(fileName, 'w')
-    ##writeToFile(outputFile,content,errors)
+    writeToFile(outputFile,result)
     outputFile.close()
     return fileName
 
 
-def writeToFile(outputFile,content, errors):
+def writeToFile(outputFile,content):
     rows = len(content)
-    j = 0
     for i in range(rows):
-        result = re.match("(?P<beginning><\d+,\d,\d,)(?P<e>-?\d+(.*)?)\n", content[i])
-        if result:
-            beginning = result.group('beginning')
-            content[i] = beginning + str(errors[j]) + "\n"
-            j += 1
-
         outputFile.write(content[i])
-
     return
+
 '''
 Main Method
 Prompts the user for an input file, a quantization option selection, and an m value.
