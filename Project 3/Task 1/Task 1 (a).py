@@ -87,12 +87,10 @@ def quantizeRegion(region, bins, frameNum, x, y):
     cols = len(region[0])
     resultString = ""
 
-    #what do i do with the quantized values?
     for i in range(rows):
         for j in range(cols):
             bottomBin = math.floor((region[i][j] - minValue) / valuesPerBin)
-            region[i][j] = math.floor(minValue + (bottomBin + 0.5)*valuesPerBin)
-            occurancesInFrame[region[i][j]] += 1
+            occurancesInFrame[math.floor(minValue + (bottomBin + 0.5)*valuesPerBin)] += 1
 
     for key in occurancesInFrame:
         if occurancesInFrame[key] > 0:   #for testing dont write 0 values
@@ -143,7 +141,7 @@ def quantize(frameData, fileName):
         for j in range(len(frameRegions)):
             x,y = calculateCoordinates(len(frameData[i][0]), j)
             result.append(quantizeRegion(frameRegions[j], bins, frameNum, x, y))
-            print("processed region " + str(j) + "of frame " + frameNum)
+            print("processed region " + str(j) + " of frame " + frameNum)
     outputFile = open(fileName, 'w')
     writeToFile(outputFile,result)
     outputFile.close()
