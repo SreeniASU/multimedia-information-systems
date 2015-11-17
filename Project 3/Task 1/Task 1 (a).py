@@ -1,9 +1,11 @@
 import cv2
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 import re
 from os import listdir
 from os.path import isfile,join,basename
+
 
 
 def log (message):
@@ -117,31 +119,37 @@ def calculateCoordinates(width, index):
     y = 0
     blockLength = 8
     x = (blockLength*index) % width
-    y = math.floor(((blockLength*index)/width) * blockLength)   #calculate y
+    y = int(math.floor(((blockLength*index)/width) * blockLength))   #calculate y
     return x,y
 
 
 def quantize(frameData, fileName):
-    m = 7 #getMValue()
+    m = 128 #getMValue()
     print("Running quantization with " + str(m) + " bins...")
 
     #saving some processing power here so we dont need to calculate these values for each iteration
     result = list()
-    bins = pow(2,m)
     frameNum = 0
 
     #for each entry in frameData
     for i in range(len(frameData)):
         if "Frame" in frameData[i]:
             frameNum = frameData[i].replace("Frame: ", "")
+            print("Processing regions of frame: " + frameNum)
             continue
 
         frameRegions = blockshaped(frameData[i],8,8)
+        if i == 1:
+            print (str(len(frameRegions)) + " regions per frame.")
         #for each region of the frame
         for j in range(len(frameRegions)):
             x,y = calculateCoordinates(len(frameData[i][0]), j)
-            result.append(quantizeRegion(frameRegions[j], bins, frameNum, x, y))
-            print("processed region " + str(j) + " of frame " + frameNum)
+            result.append(quantizeRegion(frameRegions[j], m, frameNum, x, y))
+        if i == 1: #REMOVE THIS BEFORE SUBMITTING
+            break
+
+    createHistogram(result, False)
+    fileName = fileName.replace(".mp4","_hist_" + str(m) + ".hst")
     outputFile = open(fileName, 'w')
     writeToFile(outputFile,result)
     outputFile.close()
@@ -153,6 +161,32 @@ def writeToFile(outputFile,content):
     for i in range(rows):
         outputFile.write(content[i])
     return
+
+def createHistogram(input, fromFile):
+    '''
+    < 1, (0, 0.0) ,136, 1 >
+    < 1, (0, 0.0) ,139, 1 >
+    < 1, (0, 0.0) ,146, 1 >
+    < 1, (0, 0.0) ,153, 1 >
+    < 1, (0, 0.0) ,155, 1 >
+    < 1, (0, 0.0) ,156, 3 >
+    '''
+    content = list();
+    histDict = dict.fromkeys(range(0, 256), 0)
+    if fromFile:
+     with open(input,'r') as f:
+        content = f.readlines()
+
+    for i in range(len(input)):
+        content = input[i].split('\n')
+        for j in range(len(content) -2 ):
+            remove = re.search("<\s*\d*\,\s*\(\d*\,\s*\d*\)\s*\,\s*",content[j])
+            key,val = content[j].replace(remove.group(0),"").replace(">","").split(',')
+            histDict[int(key)] += int(val) # += int(val)  #increment the value at the key by the given
+    width = int(max(histDict)) - int(min(histDict))
+    plt.bar(histDict.keys(), histDict.values(), width, color='g') #this does not look right at all
+
+
 
 '''
 Main Method
@@ -169,7 +203,6 @@ if __name__ == '__main__':
 
     #frameData, totalMin, totalMax = getContent(video) #this is for quantization at video level
     frameData = getContent(video)
-
     outputName = quantize(frameData, fileName)
     log(basename(outputName) + " created in location " + rootDir)
 
