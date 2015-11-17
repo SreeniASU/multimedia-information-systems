@@ -148,7 +148,7 @@ def quantize(frameData, fileName):
         if i == 1: #REMOVE THIS BEFORE SUBMITTING
             break
 
-    createHistogram(result, False)
+    createHistogram(result, False, m)
     fileName = fileName.replace(".mp4","_hist_" + str(m) + ".hst")
     outputFile = open(fileName, 'w')
     writeToFile(outputFile,result)
@@ -162,7 +162,7 @@ def writeToFile(outputFile,content):
         outputFile.write(content[i])
     return
 
-def createHistogram(input, fromFile):
+def createHistogram(input, fromFile, m):
     '''
     < 1, (0, 0.0) ,136, 1 >
     < 1, (0, 0.0) ,139, 1 >
@@ -184,7 +184,7 @@ def createHistogram(input, fromFile):
             key,val = content[j].replace(remove.group(0),"").replace(">","").split(',')
             histDict[int(key)] += int(val) # += int(val)  #increment the value at the key by the given
     width = int(max(histDict)) - int(min(histDict))
-    plt.bar(histDict.keys(), histDict.values(), width, color='g') #this does not look right at all
+    plt.hist2d(histDict.keys(), histDict.values(), m) #need to add bars maybe? not sure here
 
 
 
