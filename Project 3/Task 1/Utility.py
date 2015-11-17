@@ -32,3 +32,9 @@ def getvideofile(files):
                     return fileName
         except:
             print("File not found, please choose another file.")
+
+def writeToFile(outputFile,content):
+    rows = len(content)
+    for i in range(rows):
+        outputFile.write(content[i])
+    return

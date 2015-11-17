@@ -3,48 +3,12 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import re
+import Utility as util
 from os import listdir
 from os.path import isfile,join,basename
 
-
-
-def log (message):
-    print("\n" + message)
-
-def showFiles(files):
-	print('======= List of Files =======')
-	print('\n'.join(str(p) for p in files))
-	print('===================================')
-	return
-
-def safeGetDirectory():
-	while 1:
-		try:
-			rootDir = raw_input('Please enter the path where files are located: ')
-			validate = raw_input("Directory set to: " + rootDir + " is this okay? Y/N    ")
-			if(validate == 'Y' or validate == 'y'):
-				return rootDir
-		except:
-			log("Directory not found!")
-
-def getFile(files):
-    showFiles(files)
-    while 1:
-        try:
-            fileName = raw_input("Enter the name of the file you would like to process: \n")
-            validate = raw_input("File set to: " + fileName + " is this okay? Y/N:   ")
-            if validate == 'y' or validate == 'Y':
-                if fileName in files:
-                    return fileName
-        except:
-            log("File not found, please choose another file.")
-
-
-
 def getContent(video):
     frameNum = 0
-    #totalMax = 0
-    #totalMin = 0
     frameData = list()
     while(video.isOpened()):
         ret, frame = video.read()
@@ -52,12 +16,6 @@ def getContent(video):
             frameNum +=1
             frameData.append("Frame: " + str(frameNum))
             yFrameValues = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            #frameMax = np.amax(yFrameValues)
-            #frameMin = np.amin(yFrameValues)
-            #if frameMax > totalMax:
-            #    totalMax = frameMax
-            #if frameMin < totalMin:
-            #   totalMin = frameMin
             frameData.append(yFrameValues)
         else:
             break
@@ -145,22 +103,16 @@ def quantize(frameData, fileName):
         for j in range(len(frameRegions)):
             x,y = calculateCoordinates(len(frameData[i][0]), j)
             result.append(quantizeRegion(frameRegions[j], m, frameNum, x, y))
-        if i == 1: #REMOVE THIS BEFORE SUBMITTING
+        if i == 11: #REMOVE THIS BEFORE SUBMITTING
             break
-
+    print("Creating histogram.")
     createHistogram(result, False, m)
     fileName = fileName.replace(".mp4","_hist_" + str(m) + ".hst")
     outputFile = open(fileName, 'w')
-    writeToFile(outputFile,result)
+    util.writeToFile(outputFile,result)
     outputFile.close()
     return fileName
 
-
-def writeToFile(outputFile,content):
-    rows = len(content)
-    for i in range(rows):
-        outputFile.write(content[i])
-    return
 
 def createHistogram(input, fromFile, m):
     '''
@@ -183,10 +135,11 @@ def createHistogram(input, fromFile, m):
             remove = re.search("<\s*\d*\,\s*\(\d*\,\s*\d*\)\s*\,\s*",content[j])
             key,val = content[j].replace(remove.group(0),"").replace(">","").split(',')
             histDict[int(key)] += int(val) # += int(val)  #increment the value at the key by the given
-    width = int(max(histDict)) - int(min(histDict))
+
     plt.hist2d(histDict.keys(), histDict.values(), m) #need to add bars maybe? not sure here
-
-
+    print("Press any key or click to continue.")
+    plt.waitforbuttonpress()
+    #need to suppress these dumb errors from pointer event
 
 '''
 Main Method
@@ -194,9 +147,9 @@ Prompts the user for an input file, a quantization option selection, and an m va
 Uses these values to quantize the input files error into 2^m uniform bins.
 '''
 if __name__ == '__main__':
-    rootDir = '/home/perry/Desktop/CSE408/multimedia-information-systems/test/project1'##safeGetDirectory()
+    rootDir = '/home/perry/Desktop/CSE408/multimedia-information-systems/test/project1'##util.safeGetDirectory()
     allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-    input_file = '3.mp4'#getFile(allFiles)
+    input_file = '3.mp4'#util.getFile(allFiles)
 
     fileName = rootDir + "/" + input_file
     video = cv2.VideoCapture(fileName)
@@ -204,35 +157,4 @@ if __name__ == '__main__':
     #frameData, totalMin, totalMax = getContent(video) #this is for quantization at video level
     frameData = getContent(video)
     outputName = quantize(frameData, fileName)
-    log(basename(outputName) + " created in location " + rootDir)
-
-    '''
-    USE THIS FOR DOCUMENTATION, DO NOT REMOVE YET
-    iterate through error array
-
-    for e in errors
-      for instance: e = 40
-
-    (40 - (-139)) / 4.1
-    (179) / 4.1
-    43.24235 <= this number is the number of bins e is greater than min
-    43 = floor(e - min / 4.1)
-    44
-
-    -139 + 43*4.1 = 37.3
-    -139 + 44*4.1 = 41.4
-    37.3 + 41.4 / 2 = 39.35
-
-
-    representative => -139 + 43.5*4.1
-
-    set e = representative
-
-    move on to next e
-
-
-    | . | . | . | . | .e| . |
-
-    => the number of bins away the current error e is from the bottom
-    => gives us i
-    '''
+    print(basename(outputName) + " created in location " + rootDir)
