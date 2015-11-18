@@ -55,7 +55,7 @@ def showReconstructedVideo(differences_dic,videoHeight,videoWidth):
 	cv2.destroyAllWindows()
 
 def getListOfFrames(video,frameCount,videoHeight,videoWidth):
-	# frames = np.ndarray(shape = (frameCount,videoHeight,videoWidth,3),dtype = np.uint8)
+	# frames = np.zeros(shape = (frameCount,videoHeight,videoWidth,3),dtype = np.uint8)
 	frames = []
 	# count = 1
 	while video.isOpened():
@@ -63,7 +63,6 @@ def getListOfFrames(video,frameCount,videoHeight,videoWidth):
 		ret,frame = video.read()
 
 		if ret:
-			pass
 			frames.append(frame)
 		else:
 			break
@@ -71,9 +70,51 @@ def getListOfFrames(video,frameCount,videoHeight,videoWidth):
 
 	return frames
 
+def outputFrameInformation(differences,blockCoordX,blockCoordY):
+	#iterates throught the 8x8 'differences' array containing differences frames and outputs
+	#those differences to an output string
+	#blockCoordX,blockCoordY are the x,y coordinate for the block where the frames in
+	#the 'differences' array are located
+	outputString = ""
+	dic = {}
+
+	for i in range(0,len(differences)):
+		frame = differences[i]
+		frame_id = i
+		for j in range(0,len(frame)):
+			for k in range(0,len(frame[j])):
+				diffValue = frame[j][k]
+				pixelCount = updateDictionaryValueCount(dic,blockCoordX,blockCoordY,diffValue)
+				outputString += "<" + str(frame_id) + ",(" + str(blockCoordX) + "," + str(blockCoordY) + ")," + str(diffValue) +"," + str(pixelCount) + ">\n"
+
+	return outputString
+
+def updateDictionaryValueCount(dic,blockCoordX,blockCoordY,val):
+	#updates the count of value 'val' located on the block of corrdinates "blockCoordX,blockCoordY"
+	#on dictionary 'dic'
+
+	try:
+		dic[blockCoordX,blockCoordY,val] += 1
+	except KeyError:
+		dic[blockCoordX,blockCoordY,val] = 1
+
+	return dic[blockCoordX,blockCoordY,val]
+
+
+def writeToFile(videoName,outputString,n,type):
+	if type == 0:
+		mode = 'w'
+	if type == 1:
+		mode = 'a'
+
+	fileName = videoName + '_diff_' + str(n) + '.dhc'
+	outputFile = open(fileName,mode)
+	outputFile.write(outputString);
+
+	outputFile.close()
 
 rootDir = "C:\Users\Crispino\Documents\GitHub\multimedia-information-systems\\test\project1"
-videoName = "2.mp4"
+videoName = "6.mp4"
 
 videoPath = os.path.join(rootDir,videoName)
 
@@ -98,6 +139,7 @@ frames = getListOfFrames(video,frameCount,videoHeight,videoWidth)
 video.release()
 print len(frames)
 
+outputString = ""
 # differences = np.zeros(shape = (frameCount - 1,8,8),dtype = np.int16)
 
 for i in range(0,videoHeight,8):
@@ -108,10 +150,12 @@ for i in range(0,videoHeight,8):
 		#TRY TO CHANGE THAT TO 8 BYTES
 		differences = np.zeros(shape = (frameCount - 1,8,8),dtype = np.int16)
 		# differences.fill(0)
+		outputString = ""
 		for k in range(0,frameCount - 1):
 			yFrameValues = cv2.cvtColor(frames[k],cv2.COLOR_RGB2GRAY)
 			yFrameValues = yFrameValues[i:i + 8,j:j + 8]
-			yFrameValues = yFrameValues.astype(np.int8)#==================
+			# yFrameValues = yFrameValues.astype(np.int8)#==================
+			yFrameValues = yFrameValues.astype(np.int16)
 
 			if (k == 0):
 				differences[k] = np.copy(yFrameValues)
@@ -124,15 +168,23 @@ for i in range(0,videoHeight,8):
 			
 			oldFrame = np.copy(yFrameValues)
 
+			del yFrameValues
 
 			count += 1
 
+		outputString += outputFrameInformation(differences,i,j)
+		#REMOVE THAT WHEN NOT RECONSTRUCTING THE VIDEO
+		#------------------------------------------------
 		differences_dic[i,j] = differences
+		#------------------------------------------------
+		if (i == 0 and j == 0):
+			writeToFile(videoName,outputString,0,0)
+		else:
+			writeToFile(videoName,outputString,0,1)
+		del outputString
 
-# cv2.destroyAllWindows()
 
-# print count
-# print 
+#logging for testing purposes
 print differences
 print len(differences)
 print
@@ -149,4 +201,5 @@ print "press enter"
 print frameCount,videoHeight,videoWidth
 print len(differences_dic)
 
-showReconstructedVideo(differences_dic,videoHeight,videoWidth)
+#used just for testing: 
+# showReconstructedVideo(differences_dic,videoHeight,videoWidth)
