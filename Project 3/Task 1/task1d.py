@@ -1,6 +1,9 @@
 import numpy as np
 import cv2
 import os
+import re
+import matplotlib.pyplot as plt
+import Utility as util
 
 #gets the Y values of a frame
 def getYValues(frame):
@@ -55,28 +58,28 @@ def showReconstructedVideo(differences_dic,videoHeight,videoWidth):
 	cv2.destroyAllWindows()
 
 def getListOfFrames(video,frameCount,videoHeight,videoWidth):
-	# frames = np.zeros(shape = (frameCount,videoHeight,videoWidth,3),dtype = np.uint8)
 	frames = []
-	# count = 1
 	while video.isOpened():
-		# print count
 		ret,frame = video.read()
 
 		if ret:
 			frames.append(frame)
 		else:
 			break
-		# count += 1
 
 	return frames
 
-def outputFrameInformation(differences,blockCoordX,blockCoordY):
+def outputFrameInformation(differences,blockCoordX,blockCoordY,dicValuesTotal):
 	#iterates throught the 8x8 'differences' array containing differences frames and outputs
 	#those differences to an output string
 	#blockCoordX,blockCoordY are the x,y coordinate for the block where the frames in
 	#the 'differences' array are located
 	outputString = ""
-	dic = {}
+	dicValuesBlock = dict.fromkeys(range(-256, 256), 0)
+
+	#CHANGE THAT TO RECEIVE A DICTIONARY 'dicValuesTotal' AS A PARAMETER
+	#THEN FIRST UPDATE THE DICTIONARY WITH THE BLOCK VALUES
+	#AND THEN COMPUTE 'outputString' BASED ON THE 'dicValuesTotal' VALUES
 
 	for i in range(0,len(differences)):
 		frame = differences[i]
@@ -84,8 +87,15 @@ def outputFrameInformation(differences,blockCoordX,blockCoordY):
 		for j in range(0,len(frame)):
 			for k in range(0,len(frame[j])):
 				diffValue = frame[j][k]
-				pixelCount = updateDictionaryValueCount(dic,blockCoordX,blockCoordY,diffValue)
-				outputString += "<" + str(frame_id) + ",(" + str(blockCoordX) + "," + str(blockCoordY) + ")," + str(diffValue) +"," + str(pixelCount) + ">\n"
+				# pixelCount = updateDictionaryValueCount(dic,blockCoordX,blockCoordY,diffValue)
+				# outputString += "<" + str(frame_id) + ",(" + str(blockCoordX) + "," + str(blockCoordY) + ")," + str(diffValue) +"," + str(pixelCount) + ">\n"
+				dicValuesBlock[diffValue] += 1
+				dicValuesTotal[diffValue] += 1
+
+	for key in dicValuesBlock:
+		pixelCount = dicValuesBlock[key]
+		outputString += "<" + str(frame_id) + ",(" + str(blockCoordX) + "," + str(blockCoordY) + ")," + str(key) +"," + str(pixelCount) + ">\n"
+
 
 	return outputString
 
@@ -101,7 +111,44 @@ def updateDictionaryValueCount(dic,blockCoordX,blockCoordY,val):
 	return dic[blockCoordX,blockCoordY,val]
 
 
+def createHistogram(input, fromFile, histDict, m):
+#NEED TO CHANGE THAT 
+#MAYBE THE DICTIONARY USED ON THE MAIN CODE CAN BE USED HERE
+    '''
+    < 1, (0, 0.0) ,136, 1 >
+    < 1, (0, 0.0) ,139, 1 >
+    < 1, (0, 0.0) ,146, 1 >
+    < 1, (0, 0.0) ,153, 1 >
+    < 1, (0, 0.0) ,155, 1 >
+    < 1, (0, 0.0) ,156, 3 >
+    '''
+
+    content = list();
+    # histDict = dict.fromkeys(range(-256, 256), 0)
+
+    if fromFile:
+     with open(input,'r') as f:
+        content = f.readlines()
+
+    # for i in range(len(input)):
+    #     content = input[i].split('\n')
+    #     for j in range(len(content) -2 ):
+    #         remove = re.search("<\s*\d*\,\s*\(\d*\,\s*\d*\)\s*\,\s*",content[j])
+    #         key,val = content[j].replace(remove.group(0),"").replace(">","").split(',')
+    #         histDict[int(key)] += int(val) # += int(val) increment the value at the key by the given
+
+    plt.hist2d(histDict.keys(), histDict.values(), m) #need to add bars maybe? not sure here
+    print("Press any key or click to continue.")
+    plt.waitforbuttonpress()
+    #need to suppress these dumb errors from pointer event
+
+
 def writeToFile(videoName,outputString,n,type):
+	#writes the string "outputString" information to a file
+	#'n' argument is the n supplied by the user
+	#'type' defines if the function uses write mode or append mode
+	#if 'type' is 0, write mode is used. If 'type' is 1, append mode is used.
+
 	if type == 0:
 		mode = 'w'
 	if type == 1:
@@ -114,7 +161,8 @@ def writeToFile(videoName,outputString,n,type):
 	outputFile.close()
 
 rootDir = "C:\Users\Crispino\Documents\GitHub\multimedia-information-systems\\test\project1"
-videoName = "6.mp4"
+# rootDir = ""
+videoName = "R1.mp4"
 
 videoPath = os.path.join(rootDir,videoName)
 
@@ -124,22 +172,27 @@ videoHeight = int(video.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 videoWidth = int(video.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
 frameCount = int(video.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT))
 
+video.release()
+
 print videoWidth,videoHeight,frameCount
 print
 
-count = 1
-# global differences
+# global differences!!!!!!!!!!!!!!!!!!!!!!!!
 differences_dic = {}
+
+#dictionary that contains count of how many times each difference frame value appear on the video
+valuesDic = dict.fromkeys(range(-256, 256), 0)
+
+n = 128
 #--------------------------------
 global secondFrame
 #--------------------------------
 oldFrame = np.zeros(shape = (8,8),dtype = np.int8)
 
-frames = getListOfFrames(video,frameCount,videoHeight,videoWidth)
-video.release()
-print len(frames)
+# frames = getListOfFrames(video,frameCount,videoHeight,videoWidth)
 
 outputString = ""
+outputContainer = list()
 # differences = np.zeros(shape = (frameCount - 1,8,8),dtype = np.int16)
 
 for i in range(0,videoHeight,8):
@@ -151,8 +204,14 @@ for i in range(0,videoHeight,8):
 		differences = np.zeros(shape = (frameCount - 1,8,8),dtype = np.int16)
 		# differences.fill(0)
 		outputString = ""
+
+		video = cv2.VideoCapture(videoPath)
+
 		for k in range(0,frameCount - 1):
-			yFrameValues = cv2.cvtColor(frames[k],cv2.COLOR_RGB2GRAY)
+			# yFrameValues = cv2.cvtColor(frames[k],cv2.COLOR_RGB2GRAY)
+			_,frame = video.read()
+
+			yFrameValues = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
 			yFrameValues = yFrameValues[i:i + 8,j:j + 8]
 			# yFrameValues = yFrameValues.astype(np.int8)#==================
 			yFrameValues = yFrameValues.astype(np.int16)
@@ -170,9 +229,12 @@ for i in range(0,videoHeight,8):
 
 			del yFrameValues
 
-			count += 1
 
-		outputString += outputFrameInformation(differences,i,j)
+		video.release()
+
+		outputString += outputFrameInformation(differences,i,j,valuesDic)
+
+		outputContainer.append(outputString)
 		#REMOVE THAT WHEN NOT RECONSTRUCTING THE VIDEO
 		#------------------------------------------------
 		differences_dic[i,j] = differences
@@ -181,25 +243,31 @@ for i in range(0,videoHeight,8):
 			writeToFile(videoName,outputString,0,0)
 		else:
 			writeToFile(videoName,outputString,0,1)
+
+		#clear data from outputString
 		del outputString
 
+print "Data outputed to file!"
+
+raw_input("Press enter to show the histogram: ")
+createHistogram(outputContainer,False,valuesDic,n)
 
 #logging for testing purposes
-print differences
-print len(differences)
-print
-print "first frame: "
-print differences[0]
-print 
-print "second frame: "
-print secondFrame
-print "difference between first and second frame: "
-print differences[1]
-print 'count: ' + str(count)
-print "press enter"
+# print differences
+# print len(differences)
+# print
+# print "first frame: "
+# print differences[0]
+# print 
+# print "second frame: "
+# print secondFrame
+# print "difference between first and second frame: "
+# print differences[1]
+# print 'count: ' + str(count)
+# print "press enter"
 
-print frameCount,videoHeight,videoWidth
-print len(differences_dic)
+# print frameCount,videoHeight,videoWidth
+# print len(differences_dic)
 
 #used just for testing: 
 # showReconstructedVideo(differences_dic,videoHeight,videoWidth)
