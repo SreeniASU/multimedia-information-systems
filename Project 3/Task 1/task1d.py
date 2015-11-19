@@ -75,45 +75,50 @@ def outputFrameInformation(differences,blockCoordX,blockCoordY,dicValuesTotal):
 	#blockCoordX,blockCoordY are the x,y coordinate for the block where the frames in
 	#the 'differences' array are located
 	outputString = ""
-	dicValuesBlock = dict.fromkeys(range(-256, 256), 0)
+	#needs to update dictionary so it identificates the frame and the block region of the diff_value
 
-	#CHANGE THAT TO RECEIVE A DICTIONARY 'dicValuesTotal' AS A PARAMETER
-	#THEN FIRST UPDATE THE DICTIONARY WITH THE BLOCK VALUES
-	#AND THEN COMPUTE 'outputString' BASED ON THE 'dicValuesTotal' VALUES
+	dicValuesBlock = {}
 
 	for i in range(0,len(differences)):
 		frame = differences[i]
-		frame_id = i
+		frame_id = i + 1
 		for j in range(0,len(frame)):
 			for k in range(0,len(frame[j])):
 				diffValue = frame[j][k]
 				# pixelCount = updateDictionaryValueCount(dic,blockCoordX,blockCoordY,diffValue)
 				# outputString += "<" + str(frame_id) + ",(" + str(blockCoordX) + "," + str(blockCoordY) + ")," + str(diffValue) +"," + str(pixelCount) + ">\n"
-				dicValuesBlock[diffValue] += 1
+				updateDictionaryValueCount(dicValuesBlock,frame_id,diffValue)
 				dicValuesTotal[diffValue] += 1
 
-	for key in dicValuesBlock:
+	#sorts the dictionary keys for better printing
+	sortedDicValuesBlock = sorted(dicValuesBlock.items())
+
+
+	for i in sortedDicValuesBlock:
+		key = i[0]
+
+		frame_id = key[0]
+		diff_value = key[1]
 		pixelCount = dicValuesBlock[key]
-		outputString += "<" + str(frame_id) + ",(" + str(blockCoordX) + "," + str(blockCoordY) + ")," + str(key) +"," + str(pixelCount) + ">\n"
+
+		outputString += "<" + str(frame_id) + ",(" + str(blockCoordX) + "," + str(blockCoordY) + ")," + str(diff_value) +"," + str(pixelCount) + ">\n"
 
 
 	return outputString
 
-def updateDictionaryValueCount(dic,blockCoordX,blockCoordY,val):
-	#updates the count of value 'val' located on the block of corrdinates "blockCoordX,blockCoordY"
-	#on dictionary 'dic'
+def updateDictionaryValueCount(dic,frame_id,val):
+	'''updates the count of value 'val' located on the frame represented by "frame_id"
+	on dictionary 'dic' '''
 
 	try:
-		dic[blockCoordX,blockCoordY,val] += 1
+		dic[frame_id,val] += 1
 	except KeyError:
-		dic[blockCoordX,blockCoordY,val] = 1
-
-	return dic[blockCoordX,blockCoordY,val]
+		dic[frame_id,val] = 1
 
 
 def createHistogram(input, fromFile, histDict, m):
-#NEED TO CHANGE THAT 
-#MAYBE THE DICTIONARY USED ON THE MAIN CODE CAN BE USED HERE
+#NEED TO CHANGE THAT
+#MAYBE COMMENTED CODE IS NOT USEFUL
     '''
     < 1, (0, 0.0) ,136, 1 >
     < 1, (0, 0.0) ,139, 1 >
@@ -177,16 +182,12 @@ video.release()
 print videoWidth,videoHeight,frameCount
 print
 
-# global differences!!!!!!!!!!!!!!!!!!!!!!!!
 differences_dic = {}
 
 #dictionary that contains count of how many times each difference frame value appear on the video
 valuesDic = dict.fromkeys(range(-256, 256), 0)
 
 n = 128
-#--------------------------------
-global secondFrame
-#--------------------------------
 oldFrame = np.zeros(shape = (8,8),dtype = np.int8)
 
 # frames = getListOfFrames(video,frameCount,videoHeight,videoWidth)
@@ -213,15 +214,12 @@ for i in range(0,videoHeight,8):
 
 			yFrameValues = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
 			yFrameValues = yFrameValues[i:i + 8,j:j + 8]
-			# yFrameValues = yFrameValues.astype(np.int8)#==================
 			yFrameValues = yFrameValues.astype(np.int16)
 
 			if (k == 0):
 				differences[k] = np.copy(yFrameValues)
 				oldFrame = np.copy(differences[k])
 				continue
-			elif (k == 1):
-				secondFrame = np.copy(yFrameValues)
 
 			differences[k] = np.array(oldFrame - yFrameValues)
 			
@@ -251,23 +249,6 @@ print "Data outputed to file!"
 
 raw_input("Press enter to show the histogram: ")
 createHistogram(outputContainer,False,valuesDic,n)
-
-#logging for testing purposes
-# print differences
-# print len(differences)
-# print
-# print "first frame: "
-# print differences[0]
-# print 
-# print "second frame: "
-# print secondFrame
-# print "difference between first and second frame: "
-# print differences[1]
-# print 'count: ' + str(count)
-# print "press enter"
-
-# print frameCount,videoHeight,videoWidth
-# print len(differences_dic)
 
 #used just for testing: 
 # showReconstructedVideo(differences_dic,videoHeight,videoWidth)
