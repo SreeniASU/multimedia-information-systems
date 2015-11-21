@@ -32,9 +32,13 @@ def getMValue():
             else:
                 return option
         except:
-            log(str(option) + " is not a valid input. Please try again.\n")
+            print(str(option) + " is not a valid input. Please try again.\n")
 
-
+'''
+Quantizes a region using the number of bins
+Returns a formatted string for output to a file which details the information in the format:
+< FrameNumber, (X coordinate, Y coordinate) , Y Channel Value, Number Of Occurances >
+'''
 def quantizeRegion(region, bins, frameNum, x, y):
     minValue = np.amin(region)
     maxValue = np.amax(region)
@@ -57,27 +61,30 @@ def quantizeRegion(region, bins, frameNum, x, y):
             resultString += "< " + str(frameNum) + ", (" + str(x) + ", " + str(y) + ") ," + str(key) + ", " + str(occurancesInFrame[key]) + " >\n"
     return resultString
 
-#From the smart people on stackoverflow
-#http://stackoverflow.com/questions/16856788/slice-2d-array-into-smaller-2d-arrays
-def blockshaped(arr, nrows, ncols):
-    """
-    Return an array of shape (n, nrows, ncols) where
+'''
+From the smart people on stackoverflow
+http://stackoverflow.com/questions/16856788/slice-2d-array-into-smaller-2d-arrays
+
+Return an array of shape (n, nrows, ncols) where
     n * nrows * ncols = arr.size
 
     If arr is a 2D array, the returned array should look like n subblocks with
     each subblock preserving the "physical" layout of arr.
-    """
-    h, w = arr.shape
+'''
+def blockshaped(arr, nrows, ncols):
     return (arr.reshape(h//nrows, nrows, -1, ncols)
                .swapaxes(1,2)
                .reshape(-1, nrows, ncols))
 
+'''
+Find the coordinates of the given region by utilizing the index and width of the video
+'''
 def calculateCoordinates(width, index):
     x = 0
     y = 0
     blockLength = 8
     x = (blockLength*index) % width
-    y = int(math.floor(((blockLength*index)/width) * blockLength))   #calculate y
+    y = int(math.floor(((blockLength*index)/width) * blockLength))
     return x,y
 
 
@@ -103,8 +110,7 @@ def quantize(frameData, fileName):
         for j in range(len(frameRegions)):
             x,y = calculateCoordinates(len(frameData[i][0]), j)
             result.append(quantizeRegion(frameRegions[j], m, frameNum, x, y))
-        if i == 11: #REMOVE THIS BEFORE SUBMITTING
-            break
+
     print("Creating histogram.")
     createHistogram(result, False, m)
     fileName = fileName.replace(".mp4","_hist_" + str(m) + ".hst")
@@ -147,9 +153,9 @@ Prompts the user for an input file, a quantization option selection, and an m va
 Uses these values to quantize the input files error into 2^m uniform bins.
 '''
 if __name__ == '__main__':
-    rootDir = '/home/perry/Desktop/CSE408/multimedia-information-systems/test/project1'##util.safeGetDirectory()
+    rootDir = '/home/perry/Desktop/multimedia/multimedia-information-systems/test/project1'##util.safeGetDirectory()
     allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-    input_file = '3.mp4'#util.getFile(allFiles)
+    input_file = 'R2.mp4'#util.getFile(allFiles)
 
     fileName = rootDir + "/" + input_file
     video = cv2.VideoCapture(fileName)
