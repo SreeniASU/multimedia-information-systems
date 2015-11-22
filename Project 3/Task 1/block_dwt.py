@@ -66,16 +66,16 @@ def video_blockdwt(file_path, n):
         'LH130', 'LH131', 'LH132', 'LH133', 'HH130', 'HH131', 'HH132', 'HH133']
     video = cv2.VideoCapture(file_path)
     frameNum = 0
-    outputFile = open(file_path.strip('.mp4') + '_blockdwt_' + str(n) + '.bwt', 'w')
+    outputFile = open(file_path.replace('.mp4', '_blockdwt_' + str(n) + '.bwt'), 'w')
     while video.isOpened():
         ret, frame = video.read()
         if ret:
             frameNum += 1
             print('Frame number: ' + str(frameNum))
-            yFrameValues = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             for blockI in range(0, len(frame), 8):
                 for blockJ in range(0, len(frame[blockI]), 8):
-                    block = yFrameValues[blockI:blockI+8,blockJ:blockJ+8]
+                    block = frame[blockI:blockI+8,blockJ:blockJ+8]
                     block_dwt = dwt(block)
                     indexes_of_significant_wavelets = np.argsort(np.absolute(block_dwt), axis=None)[::-1]
                     for i in range(n):
@@ -94,7 +94,7 @@ Pass the parameters in via command line parameters.
 '''
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print 'Usage: python Task1c.py ../path/to/file.mp4 4'
+        print 'Usage: python block_dwt.py 4 ../path/to/file.mp4'
         exit()
 
     file_path = os.path.realpath(sys.argv[1])

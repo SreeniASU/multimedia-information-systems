@@ -8,7 +8,7 @@ def showfiles(files):
     print('===================================')
     return
 
-def safegetdirectory():
+def safeGetDirectory():
     while(1):
         try:
             rootdirectory = raw_input("Enter the location of video files")
@@ -21,7 +21,7 @@ def safegetdirectory():
 
 
 
-def getvideofile(files):
+def getVideoFile(files):
     showfiles(files)
     while 1:
         try:
