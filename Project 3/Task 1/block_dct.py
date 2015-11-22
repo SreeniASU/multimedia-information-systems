@@ -94,7 +94,7 @@ def FindDiscreteCosineTransform(videoForProcessing,n):
 
 if __name__ == '__main__':
     # Directory in which all the video files are pesent
-    rootDir = util.safegetdirectory()
+    rootDir = util.safeGetDirectory()
     #rootDir = "//Users//sreeni//Videos/inputvideos"
     # Get all the files from the root directory
     allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
