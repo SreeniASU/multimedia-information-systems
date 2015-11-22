@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import sys
 import os
+# from os import listdir
+from os.path import join
 
 '''
 harr(block)
@@ -18,7 +20,7 @@ def haar(block):
 
 '''
 dwt(block)
-Applies 3 stage 2D Haar wavelet transform on each block, returning an 8x8
+Applies 3 stage 2D Haar wavelet transform on each frame, returning an 8x8
 array of the following form:
 ---------------------------------
 |LL3|HL3|HL2    |HL1            |
@@ -38,13 +40,16 @@ array of the following form:
 |               |               |
 ---------------------------------
 '''
-def dwt(block):
+def dwt(block, blockSize):
     # First dwt transform
     dwt = haar(block)
-    # Second dwt transform
-    dwt[:4,:4] = haar(dwt[:4,:4])
-    # Third dwt transform
-    dwt[:2,:2] = haar(dwt[:2,:2])
+
+    count = 1
+    while blockSize%(2*count)==0 :  # if blocksize is divisible by 2, then run haar on prev divided by 2
+        count+=1
+        blockSize/=2
+        dwt[:blockSize,:blockSize] = haar(dwt[:blockSize,:blockSize])
+
     return dwt
 
 '''
@@ -55,34 +60,36 @@ Applies block-wise dwt to video and writes to .bwt file
 Has side-effect of writing output to .bwt file
 '''
 def video_blockdwt(file_path, n):
-    wavelet_ids = [
-        'LL300', 'HL300', 'HL200', 'HL201', 'HL100', 'HL101', 'HL102', 'HL103',
-        'LH300', 'HH300', 'HL210', 'HL211', 'HL110', 'HL111', 'HL112', 'HL113',
-        'LH200', 'LH201', 'HH200', 'HH201', 'HL120', 'HL121', 'HL122', 'HL123',
-        'LH210', 'LH211', 'HH210', 'HH211', 'HL130', 'HL131', 'HL132', 'HL133',
-        'LH100', 'LH101', 'LH102', 'LH103', 'HH100', 'HH101', 'HH102', 'HH103',
-        'LH110', 'LH111', 'LH112', 'LH113', 'HH110', 'HH111', 'HH112', 'HH113',
-        'LH120', 'LH121', 'LH122', 'LH123', 'HH120', 'HH121', 'HH122', 'HH123',
-        'LH130', 'LH131', 'LH132', 'LH133', 'HH130', 'HH131', 'HH132', 'HH133']
+
     video = cv2.VideoCapture(file_path)
     frameNum = 0
-    outputFile = open(file_path.strip('.mp4') + '_blockdwt_' + str(n) + '.bwt', 'w')
+    outputFile = open(file_path.strip('.mp4') + '_ramedwt_' + str(n) + '.fwt', 'w')
     while video.isOpened():
         ret, frame = video.read()
         if ret:
+            len(frame)
             frameNum += 1
             print('Frame number: ' + str(frameNum))
             yFrameValues = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            for blockI in range(0, len(frame), 8):
-                for blockJ in range(0, len(frame[blockI]), 8):
-                    block = yFrameValues[blockI:blockI+8,blockJ:blockJ+8]
-                    block_dwt = dwt(block)
+            totalX = len(frame) #64
+            # totalY = len(frame[0])  # don't need unless we are given non-square frames
+
+            customBlock = totalX # size of the frame
+            # customBlock = 8 # 8 would be used in task 1 part c
+
+            for blockI in range(0, len(frame), customBlock):
+                for blockJ in range(0, len(frame[blockI]), customBlock):
+                    block = yFrameValues[blockI:blockI+customBlock,blockJ:blockJ+customBlock]
+                    block_dwt = dwt(block,customBlock) # pass the size of the frame
                     indexes_of_significant_wavelets = np.argsort(np.absolute(block_dwt), axis=None)[::-1]
                     for i in range(n):
                         index = indexes_of_significant_wavelets[i]
-                        value = block_dwt[index//8, index%8]
-                        wavelet_comp_id = wavelet_ids[index]
+                        value = block_dwt[index//customBlock, index%customBlock]
+                        # wavelet_comp_id = wavelet_ids[index]
+                        wavelet_comp_id = str(blockI) +","+ str(blockJ)
                         outputFile.write('<' + str(frameNum) + ',(' + str(blockI) + ',' + str(blockJ) + '),' + wavelet_comp_id + ',' + str(value) + '>\n')
+
+                        # f ramedwt m.fwt
         else:
             break
     return
@@ -94,6 +101,9 @@ Pass the parameters in via command line parameters.
 '''
 if __name__ == '__main__':
     if len(sys.argv) != 3:
+
+        # videoForProcessing = "R2.mp4" # util.getVideoFile(allFiles)    # for my testing, can be removed before submission
+        # video_blockdwt(videoForProcessing,5)
         print 'Usage: python Task1c.py ../path/to/file.mp4 4'
         exit()
 
