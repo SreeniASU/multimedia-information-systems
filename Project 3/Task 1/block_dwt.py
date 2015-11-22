@@ -1,19 +1,21 @@
 import cv2
 import numpy as np
 import sys
-import os
+import Utility as util
+from os import listdir, path
 
 '''
 harr(block)
 Applies one stage of 2D Haar wavelet transform on the given block
 '''
 def haar(block):
-    vertical_dwt = np.hstack(
-        ( (block[:,::2] + block[:,1::2])/2.0,
-          (block[:,::2] - block[:,1::2])/2.0 ) )
-    dwt = np.vstack(
-        ( (vertical_dwt[::2] + vertical_dwt[1::2])/2.0,
-          (vertical_dwt[::2] - vertical_dwt[1::2])/2.0 ) )
+    vertical_lowpass = (block[:, ::2] + block[:, 1::2])/2.0
+    vertical_highpass = (block[:, ::2] - block[:, 1::2])/2.0
+    vertical_dwt = np.hstack((vertical_lowpass, vertical_highpass))
+
+    horizontal_lowpass = (vertical_dwt[::2] + vertical_dwt[1::2])/2.0
+    horizontal_highpass = (vertical_dwt[::2] - vertical_dwt[1::2])/2.0
+    dwt = np.vstack((horizontal_lowpass, horizontal_highpass))
     return dwt
 
 '''
@@ -42,50 +44,42 @@ def dwt(block):
     # First dwt transform
     dwt = haar(block)
     # Second dwt transform
-    dwt[:4,:4] = haar(dwt[:4,:4])
+    dwt[:4, :4] = haar(dwt[:4, :4])
     # Third dwt transform
-    dwt[:2,:2] = haar(dwt[:2,:2])
+    dwt[:2, :2] = haar(dwt[:2, :2])
     return dwt
 
-'''
-video_blockdwt
-Applies block-wise dwt to video and writes to .bwt file
-- file_path - absolute path to video .mp4 file
-- n - number of significant signals to write
-Has side-effect of writing output to .bwt file
-'''
-def video_blockdwt(file_path, n):
-    wavelet_ids = [
-        'LL300', 'HL300', 'HL200', 'HL201', 'HL100', 'HL101', 'HL102', 'HL103',
-        'LH300', 'HH300', 'HL210', 'HL211', 'HL110', 'HL111', 'HL112', 'HL113',
-        'LH200', 'LH201', 'HH200', 'HH201', 'HL120', 'HL121', 'HL122', 'HL123',
-        'LH210', 'LH211', 'HH210', 'HH211', 'HL130', 'HL131', 'HL132', 'HL133',
-        'LH100', 'LH101', 'LH102', 'LH103', 'HH100', 'HH101', 'HH102', 'HH103',
-        'LH110', 'LH111', 'LH112', 'LH113', 'HH110', 'HH111', 'HH112', 'HH113',
-        'LH120', 'LH121', 'LH122', 'LH123', 'HH120', 'HH121', 'HH122', 'HH123',
-        'LH130', 'LH131', 'LH132', 'LH133', 'HH130', 'HH131', 'HH132', 'HH133']
-    video = cv2.VideoCapture(file_path)
-    frameNum = 0
-    outputFile = open(file_path.replace('.mp4', '_blockdwt_' + str(n) + '.bwt'), 'w')
-    while video.isOpened():
-        ret, frame = video.read()
-        if ret:
-            frameNum += 1
-            print('Frame number: ' + str(frameNum))
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            for blockI in range(0, len(frame), 8):
-                for blockJ in range(0, len(frame[blockI]), 8):
-                    block = frame[blockI:blockI+8,blockJ:blockJ+8]
-                    block_dwt = dwt(block)
-                    indexes_of_significant_wavelets = np.argsort(np.absolute(block_dwt), axis=None)[::-1]
-                    for i in range(n):
-                        index = indexes_of_significant_wavelets[i]
-                        value = block_dwt[index//8, index%8]
-                        wavelet_comp_id = wavelet_ids[index]
-                        outputFile.write('<' + str(frameNum) + ',(' + str(blockI) + ',' + str(blockJ) + '),' + wavelet_comp_id + ',' + str(value) + '>\n')
-        else:
-            break
-    return
+def video_blockdwt(frame_data, n):
+    '''
+    video_blockdwt
+    Applies block-wise dwt to video and writes to .bwt file
+    - file_path - absolute path to video .mp4 file
+    - n - number of significant signals to write
+    Has side-effect of writing output to .bwt file
+    '''
+    frame_num = 0
+    result = list()
+
+    for frame in frame_data:
+        frame_num += 1
+        print 'Frame number: ' + str(frame_num)
+        for block_x in range(0, len(frame), 8):
+            for block_y in range(0, len(frame[block_x]), 8):
+                block = frame[block_x:block_x+8, block_y:block_y+8]
+                block_dwt = dwt(block)
+                indexes_of_significant_wavelets = np.argsort(np.absolute(block_dwt), axis=None)[::-1]
+                for i in range(n):
+                    index = indexes_of_significant_wavelets[i]
+                    wavelet_x = index//8
+                    wavelet_y = index%8
+                    result.append({
+                        'frame_num': frame_num,
+                        'block_coords': (block_x, block_y),
+                        'key': (wavelet_x, wavelet_y),
+                        'val': block_dwt[wavelet_x, wavelet_y]
+                    })
+
+    return result
 
 '''
 Main Method
@@ -93,11 +87,26 @@ Given a video file `video_filename.mp4` and an `n` value, will output a text fil
 Pass the parameters in via command line parameters.
 '''
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print 'Usage: python block_dwt.py 4 ../path/to/file.mp4'
+    if len(sys.argv) == 1:
+        root_dir = util.safeGetDirectory()
+        all_files = [f for f in listdir(root_dir) if path.isfile(path.join(root_dir, f))]
+        input_file = util.getVideoFile(all_files)
+        n = util.getNValue()
+        filename = path.join(root_dir, input_file)
+    elif len(sys.argv) == 3:
+        filename = path.realpath(sys.argv[2])
+        n = int(sys.argv[1])
+    else:
+        print 'Usage: python block_dwt.py 6 ../path/to/file.mp4'
         exit()
 
-    file_path = os.path.realpath(sys.argv[2])
-    n = int(sys.argv[1])
+    # Read the video data
+    video = cv2.VideoCapture(filename)
+    frame_data = util.getContent(video)
 
-    video_blockdwt(file_path, n)
+    # Calculate the wavelet components of each frameblock
+    significant_wavelets = video_blockdwt(frame_data, n)
+
+    # Write the data to the file
+    output_filename = filename.replace('.mp4', '_blockdwt_' + str(n) + '.bwt')
+    util.save_to_file(significant_wavelets, output_filename)

@@ -45,7 +45,7 @@ def quantize_block(block, bins, frame_num, block_x, block_y):
     for key in frame_occurances:
         result.append({
             'frame_num': frame_num,
-            'blockCoords': (block_x, block_y),
+            'block_coords': (block_x, block_y),
             'key': key,
             'val': frame_occurances[key]
         })
@@ -73,9 +73,9 @@ def quantize(frame_data, n):
 
     return result
 
-def save_histogram(quantized_values, filename):
+def save_to_file(quantized_values, filename):
     output_file = open(filename, 'w')
-    output_format = '< {frame_num}, {blockCoords}, {key}, {val} >\n'
+    output_format = '< {frame_num}, {block_coords}, {key}, {val} >\n'
     for item in quantized_values:
         output_file.write(output_format.format(**item))
     output_file.close()
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
     # Write the data to the file
     output_filename = filename.replace('.mp4', '_hist_' + str(n) + '.hst')
-    save_histogram(quantized_values, output_filename)
+    util.save_to_file(quantized_values, output_filename)
 
     # Display histogram of quantized regions
     image_filename = output_filename.replace('.hst', '.png')

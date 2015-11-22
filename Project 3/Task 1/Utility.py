@@ -43,6 +43,14 @@ def getContent(video):
     # Possibly revisit to add max and min here
     return frameData
 
+def save_to_file(data_values, filename):
+    output_file = open(filename, 'w')
+    output_format = '< {frame_num}, {block_coords}, {key}, {val} >\n'
+    for item in data_values:
+        output_file.write(output_format.format(**item))
+    output_file.close()
+
+
 def getVideoFile(files):
     showfiles(files)
     while 1:
