@@ -1,3 +1,5 @@
+import numpy as np
+import cv2
 __author__ = 'Team 6'
 
 #Class which contains the util methods
@@ -18,8 +20,28 @@ def safeGetDirectory():
         except:
             print("Error getting directory")
 
+def getNValue():
+      while 1:
+        try:
+            option = input('Please enter an m value: ')
+            if option < 1:
+                print(str(option) + ' is not a valid selection. Please make a different selection.\n')
+            else:
+                return option
+        except:
+            print(str(option) + ' is not a valid input. Please try again.\n')
 
-
+def getContent(video):
+    frameData = list()
+    while(video.isOpened()):
+        ret, frame = video.read()
+        if ret:
+            yFrameValues = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frameData.append(yFrameValues)
+        else:
+            break
+    # Possibly revisit to add max and min here
+    return frameData
 
 def getVideoFile(files):
     showfiles(files)

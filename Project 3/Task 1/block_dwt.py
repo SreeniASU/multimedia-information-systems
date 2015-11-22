@@ -97,7 +97,7 @@ if __name__ == '__main__':
         print 'Usage: python block_dwt.py 4 ../path/to/file.mp4'
         exit()
 
-    file_path = os.path.realpath(sys.argv[1])
-    n = int(sys.argv[2])
+    file_path = os.path.realpath(sys.argv[2])
+    n = int(sys.argv[1])
 
     video_blockdwt(file_path, n)
