@@ -1,23 +1,10 @@
 __author__ = 'Team 6'
 import Utility as util
+import sys
 import cv2
 import numpy as np
 import time
-from os import listdir
-from os.path import isfile,join
-
-freq_component_ids = [
-    '00','01','02','03','04','05','06','07',
-    '10','11','12','13','14','15','16','17',
-    '20','21','22','23','24','25','26','27',
-    '30','31','32','33','34','35','36','37',
-    '40','41','42','43','44','45','46','47',
-    '50','51','52','53','54','55','56','57',
-    '60','61','62','63','64','65','66','67',
-    '70','71','72','73','74','75','76','77',
-
-]
-
+from os import listdir, path
 
 # Naive implementation of DCT by directly using the formula
 # Not very good with performance but sticking on to that as this is
@@ -59,50 +46,58 @@ def FindDCTFast(input):
     return np.dot(C, np.transpose(U/2))
 
 
-def FindDiscreteCosineTransform(videoForProcessing,n):
-    print("Splitting the video into frames")
-    video = cv2.VideoCapture(videoForProcessing)
-    ret, frame = video.read()
-    width = int(video.get(3))
-    height = int(video.get(4))
-    outputFile = open(videoForProcessing.strip('.mp4') + '_blockdct_' + str(n) + '.bct', 'w')
+def FindDiscreteCosineTransform(frame_data,n):
+    '''
+    Calculates the discrete cosign components of every frameblock
+    '''
 
-    #print("Width is " + str(video.get(3)))
-    #print("Height is" + str(video.get(4)))
-    frameNum = 0
-    while(video.isOpened()):
-        ret, frame = video.read()
-        if ret:
-            frameNum +=1
-            yFrameValues = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-            for blockI in range(0,len(frame), 8):
-                for blockJ in range(0, len(frame[blockI]), 8):
-                    block = yFrameValues[blockI:blockI+8,blockJ:blockJ+8]
-                    #FindDCT method is really slow
-                    #If you want to compute DCT faster please use FindDCTFast method
-                    transform = FindDCT(block)
-                    significant_cosine_components = np.argsort(np.absolute(transform), axis = None)[::-1]
-                    for i in range(n):
-                        index = significant_cosine_components[i]
-                        value = transform[index//8, index%8]
-                        freq_comp_id = freq_component_ids[index]
-                        outputFile.write('<' + str(frameNum) + ',(' + str(blockI) + ',' + str(blockJ) + '),' + freq_comp_id + ',' + str(value) + '>\n')
-            break
-        else:
-            break
-    outputFile.close()
+    frame_num = 0
+    result = list()
+
+    for frame in frame_data:
+        frame_num +=1
+        print 'Frame number: ' + str(frame_num)
+        for block_x in range(0,len(frame), 8):
+            for block_y in range(0, len(frame[block_x]), 8):
+                block = frame[block_x:block_x+8, block_y:block_y+8]
+                #FindDCT method is really slow
+                #If you want to compute DCT faster please use FindDCTFast method
+                transform = FindDCTFast(block)
+                significant_cosine_components = np.argsort(np.absolute(transform), axis = None)[::-1]
+                for i in range(n):
+                    index = significant_cosine_components[i]
+                    comp_x = index//8
+                    comp_y = index%8
+                    result.append({
+                        'frame_num': frame_num,
+                        'block_coords': (block_x, block_y),
+                        'key': (comp_x, comp_y),
+                        'val': transform[comp_x, comp_y]
+                    })
+
+    return result
 
 if __name__ == '__main__':
-    # Directory in which all the video files are pesent
-    rootDir = util.safeGetDirectory()
-    #rootDir = "//Users//sreeni//Videos/inputvideos"
-    # Get all the files from the root directory
-    allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-    print(allFiles)
-    n = input("Enter the number of cosine transform components")
-    #Get the video for processing
-    videoName = util.getvideofile(allFiles)
-    videoForProcessing = join(rootDir, videoName)
+    if len(sys.argv) == 1:
+        root_dir = util.safeGetDirectory()
+        all_files = [f for f in listdir(root_dir) if path.isfile(path.join(root_dir, f))]
+        input_file = util.getVideoFile(all_files)
+        n = util.getNValue()
+        filename = path.join(root_dir, input_file)
+    elif len(sys.argv) == 3:
+        filename = path.realpath(sys.argv[2])
+        n = int(sys.argv[1])
+    else:
+        print 'Usage: python block_dct.py 6 ../path/to/file.mp4'
+        exit()
 
-    #print(videoForProcessing)
-    FindDiscreteCosineTransform(videoForProcessing,n)
+    # Read the video data
+    video = cv2.VideoCapture(filename)
+    frame_data = util.getContent(video)
+
+    # Calculate the significant components
+    significant_components = FindDiscreteCosineTransform(frame_data,n)
+
+    # Write the data to the file
+    output_filename = filename.replace('.mp4', '_blockdct_' + str(n) + '.bct')
+    util.save_to_file(significant_components, output_filename)
