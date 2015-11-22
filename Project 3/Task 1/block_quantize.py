@@ -1,92 +1,106 @@
+#!/usr/bin/env python
+'''
+Quantizes each block-frame of a video
+Writes block-level quantized data in the following format to a file:
+< FrameNumber, (X coordinate, Y coordinate) , Y Channel Value, Number Of Occurances >
+Also displays a histogram with n bins and writes the histogram as a png
+'''
 import sys
 import math
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import re
 import Utility as util
-from os import listdir,path
+from os import listdir, path
 
-'''
-Quantizes a block using the number of bins
-Returns a formatted string for output to a file which details the information in the format:
-< FrameNumber, (X coordinate, Y coordinate) , Y Channel Value, Number Of Occurances >
-'''
-def quantizeBlock(block, bins, frameNum, x, y):
-    minValue = np.amin(block)
-    maxValue = np.amax(block)
-    samples, valuesPerBin = np.linspace(minValue, maxValue, bins, endpoint=False, retstep=True)
-    samples += 0.5*valuesPerBin
+def quantize_block(block, bins, frame_num, block_x, block_y):
+    '''
+    Quantizes a block using the number of bins
+    Returns a formatted string for output to a file which details the information in the format:
+    < FrameNumber, (X coordinate, Y coordinate) , Y Channel Value, Number Of Occurances >
+    '''
+    min_value = np.amin(block)
+    max_value = np.amax(block)
+    samples, bin_size = np.linspace(min_value, max_value, bins, endpoint=False, retstep=True)
+    samples += 0.5*bin_size
     samples = map((lambda v: round(v, 7)), samples)
-    occurancesInFrame = dict.fromkeys(samples, 0) #dictionary to contain how many times a value occurs
+    #dictionary to contain how many times a value occurs
+    frame_occurances = dict.fromkeys(samples, 0)
 
     for val in np.nditer(block):
-        if valuesPerBin == 0:
-            bottomBin = minValue
+        if bin_size == 0:
+            quantized_value = min_value
         else:
-            bottomBin = minValue + (math.floor((val - minValue) / valuesPerBin) + 0.5) * valuesPerBin
+            quanta = math.floor((val - min_value) / bin_size) + 0.5
+            quantized_value = min_value + quanta * bin_size
 
-        if bottomBin >= maxValue:
-            bottomBin = minValue + (bins - 0.5)*valuesPerBin
+        if quantized_value >= max_value:
+            quantized_value = min_value + (bins - 0.5)*bin_size
 
-        bottomBin = round(bottomBin, 7)
-        occurancesInFrame[bottomBin] += 1
+        quantized_value = round(quantized_value, 7)
+        frame_occurances[quantized_value] += 1
 
     result = list()
 
-    for key in occurancesInFrame:
+    for key in frame_occurances:
         result.append({
-            'frameNum': frameNum,
-            'blockCoords': (x, y),
+            'frame_num': frame_num,
+            'blockCoords': (block_x, block_y),
             'key': key,
-            'val': occurancesInFrame[key]
+            'val': frame_occurances[key]
         })
 
     return result
 
-def quantize(frameData, n):
-    print('Running quantization with ' + str(n) + ' bins...')
+def quantize(frame_data, n):
+    '''
+    Runs quantization on an entire frame by breaking down into
+    bins and calling `quantize_block`
+    '''
+    print 'Running quantization with ' + str(n) + ' bins...'
 
     result = list()
-    frameNum = 0
+    frame_num = 0
 
-    #for each entry in frameData
-    for frame in frameData:
-        frameNum += 1
-        print('Processing regions of frame: ' + str(frameNum))
-        for blockI in range(0, len(frame), 8):
-            for blockJ in range(0, len(frame[blockI]), 8):
-                block = frame[blockI:blockI+8,blockJ:blockJ+8]
-                result.extend(quantizeBlock(block, n, frameNum, blockI, blockJ))
+    #for each entry in frame_data
+    for frame in frame_data:
+        frame_num += 1
+        print 'Processing regions of frame: ' + str(frame_num)
+        for block_x in range(0, len(frame), 8):
+            for block_y in range(0, len(frame[block_x]), 8):
+                block = frame[block_x:block_x+8, block_y:block_y+8]
+                result.extend(quantize_block(block, n, frame_num, block_x, block_y))
 
     return result
 
-def writeHistogramToFile(quantizedFrameBlocks, fileName):
-    outputFile = open(fileName, 'w')
-    for item in quantizedFrameBlocks:
-        outputFile.write('< ' + str(item['frameNum']) + ', ' + str(item['blockCoords']) + ', ' + str(item['key']) + ', ' + str(item['val']) + ' >\n')
-    outputFile.close()
+def save_histogram(quantized_values, filename):
+    output_file = open(filename, 'w')
+    output_format = '< {frame_num}, {blockCoords}, {key}, {val} >\n'
+    for item in quantized_values:
+        output_file.write(output_format.format(**item))
+    output_file.close()
 
-def displayHistogram(quantizedFrameBlocks, n, fromFile=False, imageFile=''):
-    print('Creating histogram.')
-    histDict = dict()
+def display_histogram(quantized_values, n, from_file=False, image_filename=''):
+    print 'Creating histogram.'
+    histogram = dict()
 
-    if fromFile:
-        quantizedFrameBlocks = readFile(quantizedFrameBlocks)
+    if from_file:
+        # TODO: implement readfile function from file to quantized_values
+        quantized_values = util.readFile(quantized_values)
 
-    for item in quantizedFrameBlocks:
-        if item['key'] not in histDict:
-            histDict[item['key']] = 0
+    for item in quantized_values:
+        if item['key'] not in histogram:
+            histogram[item['key']] = 0
 
-        histDict[item['key']] += item['val']  #increment the value at the key by the given
+        histogram[item['key']] += item['val']  #increment the value at the key by the given
 
-    plt.hist(histDict.keys(), bins=n, weights=histDict.values()) #need to add bars maybe? not sure here
+    plt.hist(histogram.keys(), bins=n, weights=histogram.values())
 
-    if len(imageFile) > 0:
-        print 'Saving histogram image to ' + imageFile
-        plt.savefig(imageFile)
+    if len(image_filename) > 0:
+        print 'Saving histogram image to ' + image_filename
+        plt.savefig(image_filename)
 
-    print('Press any key or click to continue.')
+    print 'Press any key or click to continue.'
     plt.show()
 
 
@@ -97,13 +111,13 @@ Uses these values to quantize the input files error into 2^m uniform bins.
 '''
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        rootDir = util.safeGetDirectory()
-        allFiles = [f for f in listdir(rootDir) if isfile(join(rootDir,f))]
-        input_file = util.getVideoFile(allFiles)
+        root_dir = util.safeGetDirectory()
+        all_files = [f for f in listdir(root_dir) if path.isfile(path.join(root_dir, f))]
+        input_file = util.getVideoFile(all_files)
         n = util.getNValue()
-        fileName = path.join(rootDir,input_file)
+        filename = path.join(root_dir, input_file)
     elif len(sys.argv) == 3:
-        fileName = path.realpath(sys.argv[2])
+        filename = path.realpath(sys.argv[2])
         n = int(sys.argv[1])
     else:
         print 'Usage: python block_quantize.py 6 ../path/to/file.mp4'
@@ -111,16 +125,16 @@ if __name__ == '__main__':
 
 
     # Read video data
-    video = cv2.VideoCapture(fileName)
-    frameData = util.getContent(video)
+    video = cv2.VideoCapture(filename)
+    frame_data = util.getContent(video)
 
     # Quantize the blocks of the video
-    quantizedBlocks = quantize(frameData, n)
+    quantized_values = quantize(frame_data, n)
 
     # Write the data to the file
-    outputFileName = fileName.replace('.mp4','_hist_' + str(n) + '.hst') 
-    writeHistogramToFile(quantizedBlocks, outputFileName)
+    output_filename = filename.replace('.mp4', '_hist_' + str(n) + '.hst')
+    save_histogram(quantized_values, output_filename)
 
     # Display histogram of quantized regions
-    histogramImageFileName = outputFileName.replace('.hst', '.png')
-    displayHistogram(quantizedBlocks, n, imageFile=histogramImageFileName)
+    image_filename = output_filename.replace('.hst', '.png')
+    display_histogram(quantized_values, n, image_filename=image_filename)
