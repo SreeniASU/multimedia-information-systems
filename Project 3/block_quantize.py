@@ -10,7 +10,7 @@ import math
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import Utility as util
+import utility as util
 from os import listdir, path
 
 def quantize_block(block, bins, frame_num, block_x, block_y):

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import sys
-import Utility as util
+import utility as util
 from os import listdir, path
 
 '''

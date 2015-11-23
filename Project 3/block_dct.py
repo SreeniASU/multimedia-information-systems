@@ -1,5 +1,5 @@
 __author__ = 'Team 6'
-import Utility as util
+import utility as util
 import sys
 import cv2
 import numpy as np

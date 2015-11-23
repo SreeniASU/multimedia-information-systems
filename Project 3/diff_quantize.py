@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import sys
 from os import listdir, path
-import Utility as util
+import utility as util
 from block_quantize import quantize, display_histogram
 
 def diff_quantization(frame_data, n):
