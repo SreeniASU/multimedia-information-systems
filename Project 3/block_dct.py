@@ -9,19 +9,19 @@ from os import listdir, path
 # Naive implementation of DCT by directly using the formula
 # Not very good with performance but sticking on to that as this is
 # the direct implementation of the formula and easier to read
-def FindDCT(input):
-    DCT = np.zeros((8,8))
+def FindDCT(input_data):
+    DCT = np.zeros((8, 8))
     # DCT should be applied on values from -128 to + 127 not from 0 to 255
-    input = input - 128
-    for i in range(0,8):
-        for j in range(0,8):
+    input_data = input_data - 128
+    for i in range(0, 8):
+        for j in range(0, 8):
             temp = 0.0
-            for x in range(0,8):
-                for y in range(0,8):
-                    temp = temp +  np.cos(np.pi*i *(2*x+1)/16) * np.cos(np.pi*j *(2*y+1)/16) * input[x,y]
-            if i== 0 and j == 0:
+            for x in range(0, 8):
+                for y in range(0, 8):
+                    temp = temp + np.cos(np.pi*i *(2*x+1)/16) * np.cos(np.pi*j *(2*y+1)/16) * input_data[x, y]
+            if i == 0 and j == 0:
                 temp = temp/8
-            elif i == 0 or j==0:
+            elif i == 0 or j == 0:
                 temp = temp/(4 *np.sqrt(2))
             else:
                 temp = temp/4
@@ -31,22 +31,22 @@ def FindDCT(input):
 
 # A Faster implementation of DCT
 # Reference :- http://www.whydomath.org/node/wavlets/dct.html
-U =  np.array([[1/np.sqrt(2), 1/np.sqrt(2),1/np.sqrt(2), 1/np.sqrt(2),1/np.sqrt(2), 1/np.sqrt(2),1/np.sqrt(2), 1/np.sqrt(2)],
-                  [np.cos(np.pi/16),np.cos(3*np.pi/16),np.cos(5*np.pi/16),np.cos(7*np.pi/16),np.cos(9*np.pi/16),np.cos(11*np.pi/16),np.cos(13*np.pi/16),np.cos(15*np.pi/16)],
-                  [np.cos(2*np.pi/16),np.cos(6*np.pi/16),np.cos(10*np.pi/16),np.cos(14*np.pi/16),np.cos(18*np.pi/16),np.cos(22*np.pi/16),np.cos(26*np.pi/16),np.cos(30*np.pi/16)],
-                  [np.cos(3*np.pi/16),np.cos(9*np.pi/16),np.cos(15*np.pi/16),np.cos(21*np.pi/16),np.cos(27*np.pi/16),np.cos(33*np.pi/16),np.cos(39*np.pi/16),np.cos(45*np.pi/16)],
-                  [np.cos(4*np.pi/16),np.cos(12*np.pi/16),np.cos(20*np.pi/16),np.cos(28*np.pi/16),np.cos(36*np.pi/16),np.cos(44*np.pi/16),np.cos(52*np.pi/16),np.cos(60*np.pi/16)],
-                  [np.cos(5*np.pi/16),np.cos(15*np.pi/16),np.cos(25*np.pi/16),np.cos(35*np.pi/16),np.cos(45*np.pi/16),np.cos(55*np.pi/16),np.cos(65*np.pi/16),np.cos(75*np.pi/16)],
-                  [np.cos(6*np.pi/16),np.cos(18*np.pi/16),np.cos(30*np.pi/16),np.cos(42*np.pi/16),np.cos(54*np.pi/16),np.cos(66*np.pi/16),np.cos(78*np.pi/16),np.cos(90*np.pi/16)],
-                  [np.cos(7*np.pi/16),np.cos(21*np.pi/16),np.cos(35*np.pi/16),np.cos(49*np.pi/16),np.cos(63*np.pi/16),np.cos(77*np.pi/16),np.cos(91*np.pi/16),np.cos(105*np.pi/16)]])
+U = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 1/np.sqrt(2), 1/np.sqrt(2), 1/np.sqrt(2), 1/np.sqrt(2), 1/np.sqrt(2), 1/np.sqrt(2)],
+              [np.cos(np.pi/16), np.cos(3*np.pi/16), np.cos(5*np.pi/16), np.cos(7*np.pi/16), np.cos(9*np.pi/16), np.cos(11*np.pi/16), np.cos(13*np.pi/16), np.cos(15*np.pi/16)],
+              [np.cos(2*np.pi/16), np.cos(6*np.pi/16), np.cos(10*np.pi/16), np.cos(14*np.pi/16), np.cos(18*np.pi/16), np.cos(22*np.pi/16), np.cos(26*np.pi/16), np.cos(30*np.pi/16)],
+              [np.cos(3*np.pi/16), np.cos(9*np.pi/16), np.cos(15*np.pi/16), np.cos(21*np.pi/16), np.cos(27*np.pi/16), np.cos(33*np.pi/16), np.cos(39*np.pi/16), np.cos(45*np.pi/16)],
+              [np.cos(4*np.pi/16), np.cos(12*np.pi/16), np.cos(20*np.pi/16), np.cos(28*np.pi/16), np.cos(36*np.pi/16), np.cos(44*np.pi/16), np.cos(52*np.pi/16), np.cos(60*np.pi/16)],
+              [np.cos(5*np.pi/16), np.cos(15*np.pi/16), np.cos(25*np.pi/16), np.cos(35*np.pi/16), np.cos(45*np.pi/16), np.cos(55*np.pi/16), np.cos(65*np.pi/16), np.cos(75*np.pi/16)],
+              [np.cos(6*np.pi/16), np.cos(18*np.pi/16), np.cos(30*np.pi/16), np.cos(42*np.pi/16), np.cos(54*np.pi/16), np.cos(66*np.pi/16), np.cos(78*np.pi/16), np.cos(90*np.pi/16)],
+              [np.cos(7*np.pi/16), np.cos(21*np.pi/16), np.cos(35*np.pi/16), np.cos(49*np.pi/16), np.cos(63*np.pi/16), np.cos(77*np.pi/16), np.cos(91*np.pi/16), np.cos(105*np.pi/16)]])
 
 def FindDCTFast(input):
     input = input - 128
-    C = np.dot(U/2,input)
+    C = np.dot(U/2, input)
     return np.dot(C, np.transpose(U/2))
 
 
-def FindDiscreteCosineTransform(frame_data,n):
+def FindDiscreteCosineTransform(frame_data, n):
     '''
     Calculates the discrete cosign components of every frameblock
     '''
@@ -55,15 +55,15 @@ def FindDiscreteCosineTransform(frame_data,n):
     result = list()
 
     for frame in frame_data:
-        frame_num +=1
+        frame_num += 1
         print 'Frame number: ' + str(frame_num)
-        for block_x in range(0,len(frame), 8):
+        for block_x in range(0, len(frame), 8):
             for block_y in range(0, len(frame[block_x]), 8):
                 block = frame[block_x:block_x+8, block_y:block_y+8]
                 #FindDCT method is really slow
                 #If you want to compute DCT faster please use FindDCTFast method
                 transform = FindDCTFast(block)
-                significant_cosine_components = np.argsort(np.absolute(transform), axis = None)[::-1]
+                significant_cosine_components = np.argsort(np.absolute(transform), axis=None)[::-1]
                 for i in range(n):
                     index = significant_cosine_components[i]
                     comp_x = index//8
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     frame_data = util.getContent(video)
 
     # Calculate the significant components
-    significant_components = FindDiscreteCosineTransform(frame_data,n)
+    significant_components = FindDiscreteCosineTransform(frame_data, n)
 
     # Write the data to the file
     output_filename = filename.replace('.mp4', '_blockdct_' + str(n) + '.bct')

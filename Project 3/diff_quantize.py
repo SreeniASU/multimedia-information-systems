@@ -8,7 +8,6 @@ from block_quantize import quantize, display_histogram
 
 def diff_quantization(frame_data, n):
     diff_frame_data = np.diff(frame_data, axis=0)
-    
     # Quantize the blocks of the video
     quantized_values = quantize(diff_frame_data, n)
     return quantized_values
@@ -30,7 +29,7 @@ if __name__ == '__main__':
 
     video = cv2.VideoCapture(filename)
     frame_data = util.getContent(video)
-    
+
     # Quantize the blocks of the video
     quantized_values = diff_quantization(frame_data, n)
 
