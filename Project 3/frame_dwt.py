@@ -9,7 +9,7 @@ import utility as util
 
 '''
 dwt(block)
-Applies n stage 2D Haar wavelet transform on each frame, returning an 8x8
+Applies m stage 2D Haar wavelet transform on each frame, returning an 8x8
 array of the following form:
 ---------------------------------
 |LL3|HL3|HL2    |HL1            |
@@ -46,10 +46,10 @@ def frame_dwt(frame):
 video_blockdwt
 Applies block-wise dwt to video and writes to .bwt file
 - file_path - absolute path to video .mp4 file
-- n - number of significant signals to write
+- m - number of significant signals to write
 Has side-effect of writing output to .bwt file
 '''
-def video_framedwt(file_path, n):
+def video_framedwt(frame_data, m):
 
     frame_num = 0
     result = list()
@@ -62,7 +62,7 @@ def video_framedwt(file_path, n):
 
         frame_wavelets = frame_dwt(frame)
         indexes_of_significant_wavelets = np.argsort(np.absolute(frame_wavelets), axis=None)[::-1]
-        for i in range(n):
+        for i in range(m):
             index = indexes_of_significant_wavelets[i]
             wavelet_x = index//len(frame_wavelets)
             wavelet_y = index%len(frame_wavelets[0])
@@ -76,7 +76,7 @@ def video_framedwt(file_path, n):
 
 '''
 Main Method
-Given a video file `video_filename.mp4` and an `n` value, will output a text file video_filename_blockdwt_n.bwt in the same directory.
+Given a video file `video_filename.mp4` and an `m` value, will output a text file video_filename_blockdwt_n.bwt in the same directory.
 Pass the parameters in via command line parameters.
 '''
 if __name__ == '__main__':
@@ -84,11 +84,11 @@ if __name__ == '__main__':
         root_dir = util.safeGetDirectory()
         all_files = [f for f in listdir(root_dir) if path.isfile(path.join(root_dir, f))]
         input_file = util.getVideoFile(all_files)
-        n = util.getNValue()
+        m = util.getConstant('m')
         filename = path.join(root_dir, input_file)
     elif len(sys.argv) == 3:
         filename = path.realpath(sys.argv[2])
-        n = int(sys.argv[1])
+        m = int(sys.argv[1])
     else:
         print 'Usage: python frame_dwt.py 6 ../path/to/file.mp4'
         exit()
@@ -98,8 +98,8 @@ if __name__ == '__main__':
     frame_data = util.getContent(video)
 
     # Calculate the wavelet components of each frameblock
-    significant_wavelets = video_framedwt(frame_data, n)
+    significant_wavelets = video_framedwt(frame_data, m)
 
     # Write the data to the file
-    output_filename = filename.replace('.mp4', '_framedwt_' + str(n) + '.fwt')
+    output_filename = filename.replace('.mp4', '_framedwt_' + str(m) + '.fwt')
     util.save_to_file(significant_wavelets, output_filename)

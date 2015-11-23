@@ -20,10 +20,10 @@ def safeGetDirectory():
         except:
             print("Error getting directory")
 
-def getNValue():
+def getConstant(query_value):
       while 1:
         try:
-            option = input('Please enter an m value: ')
+            option = input('Please enter a value for ' + query_value + ': ')
             if option < 1:
                 print(str(option) + ' is not a valid selection. Please make a different selection.\n')
             else:

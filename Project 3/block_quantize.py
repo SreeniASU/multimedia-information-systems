@@ -107,7 +107,7 @@ if __name__ == '__main__':
         root_dir = util.safeGetDirectory()
         all_files = [f for f in listdir(root_dir) if path.isfile(path.join(root_dir, f))]
         input_file = util.getVideoFile(all_files)
-        n = util.getNValue()
+        n = util.getConstant('n')
         filename = path.join(root_dir, input_file)
     elif len(sys.argv) == 3:
         filename = path.realpath(sys.argv[2])
