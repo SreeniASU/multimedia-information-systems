@@ -73,13 +73,6 @@ def quantize(frame_data, n):
 
     return result
 
-def save_to_file(quantized_values, filename):
-    output_file = open(filename, 'w')
-    output_format = '< {frame_num}, {block_coords}, {key}, {val} >\n'
-    for item in quantized_values:
-        output_file.write(output_format.format(**item))
-    output_file.close()
-
 def display_histogram(quantized_values, n, from_file=False, image_filename=''):
     print 'Creating histogram.'
     histogram = dict()

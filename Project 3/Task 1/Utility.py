@@ -41,7 +41,7 @@ def getContent(video):
         else:
             break
     # Possibly revisit to add max and min here
-    return frameData
+    return np.array(frameData).astype(int)
 
 def save_to_file(data_values, filename):
     output_file = open(filename, 'w')
