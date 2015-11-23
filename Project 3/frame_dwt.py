@@ -49,7 +49,7 @@ Applies block-wise dwt to video and writes to .bwt file
 - n - number of significant signals to write
 Has side-effect of writing output to .bwt file
 '''
-def video_framedwt(file_path, n):
+def video_framedwt(frame_data, n):
 
     frame_num = 0
     result = list()

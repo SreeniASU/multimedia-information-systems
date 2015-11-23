@@ -6,7 +6,7 @@ from os import listdir, path
 import utility as util
 from block_quantize import quantize, display_histogram
 
-def diff_quantization(frame_data, n):
+def diff_quantize(frame_data, n):
     diff_frame_data = np.diff(frame_data, axis=0)
     # Quantize the blocks of the video
     quantized_values = quantize(diff_frame_data, n)
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     frame_data = util.getContent(video)
 
     # Quantize the blocks of the video
-    quantized_values = diff_quantization(frame_data, n)
+    quantized_values = diff_quantize(frame_data, n)
 
     # Write the data to the file
     output_filename = filename.replace('.mp4', '_diff_' + str(n) + '.dhc')
