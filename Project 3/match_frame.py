@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import sys
 import matplotlib.pyplot as plt
-from os import path
+from os import listdir, path
 import utility as util
 from block_dwt import video_blockdwt
 from block_dct import FindDiscreteCosineTransform
@@ -46,11 +46,15 @@ def show_ten_closest(frame_data, feature_summary, frame_num):
     features_per_frame = reduce(aggregate_features, feature_summary, features_list)
     target_features = features_per_frame[frame_num - 1]
     closest_matches = indexes_of_closest_matches(target_features, features_per_frame)
-    for i in range(10):
+    for i in range(1,11):
         index = closest_matches[i]
         rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        cv2.imshow('Original frame', rgb_target)
+        print i
+        cv2.imshow(str(i), rgb_target)
         cv2.waitKey(0)
+
+    cv2.destroyAllWindows()
+    return
 
 
 if __name__ == '__main__':
@@ -58,9 +62,9 @@ if __name__ == '__main__':
         root_dir = util.safeGetDirectory()
         all_files = [f for f in listdir(root_dir) if path.isfile(path.join(root_dir, f))]
         input_file = util.getVideoFile(all_files)
-        n = util.getNValue()
-        m = util.getNValue()
-        f = util.getNValue()
+        f = util.getConstant('the frame number')
+        n = util.getConstant('n (for block-level quantization)')
+        m = util.getConstant('m (for frame-level dwt)')
         filename = path.join(root_dir, input_file)
     elif len(sys.argv) == 5:
         f = int(sys.argv[1])
