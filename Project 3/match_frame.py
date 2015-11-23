@@ -49,7 +49,7 @@ def indexes_of_closest_matches(target_features, features_per_frame):
     closest_matches = [i[0] for i in sorted(enumerate(scores), key=lambda x:x[1])]
     return closest_matches
 
-def show_ten_closest(frame_data, feature_summary, frame_num):
+def show_ten_closest(frame_data, feature_summary, frame_num, description):
     # List of dictionaries - has length of the number of frames, which we will fill
     features_list = [{} for i in range(len(frame_data))]
     # Turn our feature_summary into a more useful list, that has one entry
@@ -66,7 +66,7 @@ def show_ten_closest(frame_data, feature_summary, frame_num):
         # For each of those frame numbers, display the image in a window with the number
         index = closest_matches[i]
         rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        cv2.imshow(str(i), rgb_target)
+        cv2.imshow(description + ' ' + str(i), rgb_target)
         cv2.waitKey(0)
 
     cv2.destroyAllWindows()
@@ -98,20 +98,21 @@ if __name__ == '__main__':
     target_frame_data = frame_data[f-1]
     rgb_target = cv2.cvtColor(target_frame_data.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     cv2.imshow('Original frame', rgb_target)
+    print 'Displaying Original frame - press any key to continue :)'
     cv2.waitKey(0)
 
     block_quantized = quantize(frame_data, n)
-    show_ten_closest(frame_data, block_quantized, f)
+    show_ten_closest(frame_data, block_quantized, f, 'Quantization')
 
     block_dct = FindDiscreteCosineTransform(frame_data, n)
-    show_ten_closest(frame_data, block_dct, f)
+    show_ten_closest(frame_data, block_dct, f, 'DCT')
 
     block_dwt = video_blockdwt(frame_data, n)
-    show_ten_closest(frame_data, block_dwt, f)
+    show_ten_closest(frame_data, block_dwt, f, 'Block-level DWT')
 
     block_diff_quantized = diff_quantize(frame_data, n)
-    show_ten_closest(frame_data, block_diff_quantized, f)
+    show_ten_closest(frame_data, block_diff_quantized, f, 'Diff Quantization')
 
     frame_dwt = video_framedwt(frame_data, m)
-    show_ten_closest(frame_data, frame_dwt, f)
-    print "all done!"
+    show_ten_closest(frame_data, frame_dwt, f, 'Frame-level DWT')
+    print "All done!"
