@@ -12,6 +12,8 @@ from diff_quantize import diff_quantize
 from frame_dwt import video_framedwt 
 
 def aggregate_features(features_per_frame, feature):
+    # Reduce function that takes a feature and places it in the correct
+    # Frame in the features_per_frame list
     if 'block_coords' in feature:
         features_per_frame[feature['frame_num'] - 1][(feature['block_coords'], feature['key'])] = feature['val']
     else:
@@ -21,35 +23,49 @@ def aggregate_features(features_per_frame, feature):
 
 def indexes_of_closest_matches(target_features, features_per_frame):
     def score_feature(feature):
+        # Could be an integer or float
         score = 0.0
         for key in target_features:
             if key in feature:
+                # Add up all of the absolute values when both frames
+                # have a similar key
                 score += abs(target_features[key] - feature[key])
             else:
+                # If this frame doesn't have that key, just add the
+                # absolute value to the sum
                 score += abs(target_features[key])
 
         for key in feature:
             if key not in target_features:
+                # Also add any keys that the frame has and the target
+                # doesn't have
                 score += abs(feature[key])
 
         return score
 
+    # Take all of the frames, and for each one apply the score_feature function,
+    # which adds up all of the differences in the values in similar keys
     scores = map(score_feature, features_per_frame)
     closest_matches = [i[0] for i in sorted(enumerate(scores), key=lambda x:x[1])]
     return closest_matches
 
 def show_ten_closest(frame_data, feature_summary, frame_num):
-    # Reduce feature_summary to list of one dictionary per frame
-    # Where each dictionary has (block_id, key) as the keys and val
-    # as the value
+    # List of dictionaries - has length of the number of frames, which we will fill
     features_list = [{} for i in range(len(frame_data))]
+    # Turn our feature_summary into a more useful list, that has one entry
+    # per frame, each entry being a dictionary of keys and values. In most cases
+    # the key is a tuple of block index and one other value, which is a wavelet id
+    # or quanta depending on which part you're using. The nice thing is that this code
+    # works in either case
     features_per_frame = reduce(aggregate_features, feature_summary, features_list)
+    # Grab the frame we're interested in:
     target_features = features_per_frame[frame_num - 1]
+    # Get the frame numbers of the most similar frames
     closest_matches = indexes_of_closest_matches(target_features, features_per_frame)
     for i in range(1,11):
+        # For each of those frame numbers, display the image in a window with the number
         index = closest_matches[i]
         rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        print i
         cv2.imshow(str(i), rgb_target)
         cv2.waitKey(0)
 
