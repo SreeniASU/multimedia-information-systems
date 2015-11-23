@@ -13,7 +13,7 @@ def showfiles(files):
 def safeGetDirectory():
     while(1):
         try:
-            rootdirectory = raw_input("Enter the location of video files")
+            rootdirectory = raw_input("Enter the location of video files: ")
             validate = raw_input("Directory set to: " + rootdirectory + " is this okay? Y/N    ")
             if(validate == 'Y' or validate == 'y'):
                 return rootdirectory

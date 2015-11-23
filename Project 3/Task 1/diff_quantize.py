@@ -1,6 +1,8 @@
+#!/usr/bin/env python
 import numpy as np
 import cv2
-import os
+import sys
+from os import listdir, path
 import matplotlib.pyplot as plt
 import Utility as util
 
@@ -129,88 +131,93 @@ def writeToFile(videoName, outputString, n, access_type):
 
     outputFile.close()
 
-rootDir = "C:\Users\Crispino\Documents\GitHub\multimedia-information-systems\\test\project1"
-# rootDir = ""
-videoName = "R1.mp4"
+def diff_quantization(filename, frame_data, n):
+    # video = cv2.VideoCapture(filename)
 
-videoPath = os.path.join(rootDir, videoName)
+    videoHeight = len(frame_data[0])
+    videoWidth = len(frame_data[0][0])
+    frameCount = len(frame_data)
 
-video = cv2.VideoCapture(videoPath)
+    print "Video width: " + str(videoWidth)
+    print "Video heigth: " + str(videoHeight)
+    print "Number of frames: " + str(frameCount)
 
-videoHeight = int(video.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
-videoWidth = int(video.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
-frameCount = int(video.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT))
+    #dictionary that contains count of how many times each difference frame value appear on the video
+    valuesDic = dict.fromkeys(range(-256, 256), 0)
 
-video.release()
+    oldFrame = np.zeros(shape=(8, 8), dtype=np.int8)
 
-print "Video width: " + str(videoWidth)
-print "Video heigth: " + str(videoHeight)
-print "Number of frames: " + str(frameCount)
+    outputString = "" #string used to update output file
 
-differences_dic = {}
+    #iterates through each 8x8 region and gets 
+    for i in range(0, videoHeight, 8):
+        print i
+        for j in range(0, videoWidth, 8):
+            #temporary array that contains the difference frames for the block of the time
+            differences = np.zeros(shape = (frameCount - 1, 8, 8), dtype=np.int16)
+            outputString = ""
 
-#dictionary that contains count of how many times each difference frame value appear on the video
-valuesDic = dict.fromkeys(range(-256, 256), 0)
+            #iterating through each frame
+            for k in range(0, frameCount - 1):
+                #original frame is read here
+                frame = frame_data[k]
 
-n = 128
-oldFrame = np.zeros(shape=(8, 8), dtype=np.int8)
+                #frame is converted to grayscale(to get Y values) and cropped to a 8x8 block
+                frame_block = frame[i:i + 8, j:j + 8]
+                #array type is changed to support values on the range (-255, 255)
+                frame_block = frame_block.astype(np.int16)
 
-outputString = "" #string used to update output file
+                if k == 0:
+                    #if it is the first iteration, no differences are calculated
+                    differences[k] = np.copy(frame_block)
+                    oldFrame = np.copy(differences[k])
+                    continue
+                '''
+                otherwise, the current difference is calculated by taking the 
+                difference of the previous frame and the current one
+                '''
 
-#iterates through each 8x8 region and gets 
-for i in range(0, videoHeight, 8):
-    print i
-    for j in range(0, videoWidth, 8):
-        #temporary array that contains the difference frames for the block of the time
-        differences = np.zeros(shape = (frameCount - 1, 8, 8), dtype=np.int16)
-        outputString = ""
+                differences[k] = np.array(oldFrame - frame_block)
 
-        #video capture object
-        video = cv2.VideoCapture(videoPath)
+                oldFrame = np.copy(frame_block)
 
-        #iterating through each frame
-        for k in range(0, frameCount - 1):
-            #original frame is read here
-            _, frame = video.read()
-
-            #frame is converted to grayscale(to get Y values) and cropped to a 8x8 block
-            yFrameValues = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-            yFrameValues = yFrameValues[i:i + 8, j:j + 8]
-            #array type is changed to support values on the range (-255, 255)
-            yFrameValues = yFrameValues.astype(np.int16)
-
-            if k == 0:
-                #if it is the first iteration, no differences are calculated
-                differences[k] = np.copy(yFrameValues)
-                oldFrame = np.copy(differences[k])
-                continue
-            '''
-            otherwise, the current difference is calculated by taking the 
-            difference of the previous frame and the current one
-            '''
-
-            differences[k] = np.array(oldFrame - yFrameValues)
-
-            oldFrame = np.copy(yFrameValues)
-
-            del yFrameValues
+                del frame_block
 
 
-        video.release()
+            outputString += outputFrameInformation(differences, i, j, valuesDic)
 
-        outputString += outputFrameInformation(differences, i, j, valuesDic)
+            #writes current 'outputString' data to file
+            if i == 0 and j == 0:
+                writeToFile(filename, outputString, 0, 0)
+            else:
+                writeToFile(filename, outputString, 0, 1)
 
-        #writes current 'outputString' data to file
-        if i == 0 and j == 0:
-            writeToFile(videoName, outputString, 0, 0)
-        else:
-            writeToFile(videoName, outputString, 0, 1)
+            #then clears data from outputString
+            del outputString
 
-        #then clears data from outputString
-        del outputString
+    print "Data outputed to file!"
+    return valuesDic
 
-print "Data outputed to file!"
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        root_dir = util.safeGetDirectory()
+        all_files = [f for f in listdir(root_dir) if path.isfile(path.join(root_dir, f))]
+        input_file = util.getVideoFile(all_files)
+        n = util.getNValue()
+        filename = path.join(root_dir, input_file)
+    elif len(sys.argv) == 3:
+        filename = path.realpath(sys.argv[2])
+        n = int(sys.argv[1])
+    else:
+        print 'Usage: python diff_quantize.py 6 ../path/to/file.mp4'
+        exit()
 
-raw_input("Press enter to show the histogram: ")
-#testing function below without receiving a valid input list
-createHistogram(valuesDic, n)
+    video = cv2.VideoCapture(filename)
+    frame_data = util.getContent(video)
+
+    n = 128
+    valuesDic = diff_quantization(filename, frame_data, n)
+
+    raw_input("Press enter to show the histogram: ")
+    #testing function below without receiving a valid input list
+    createHistogram(valuesDic, n)
