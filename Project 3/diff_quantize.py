@@ -9,7 +9,7 @@ from block_quantize import quantize, display_histogram
 def diff_quantize(frame_data, n):
     diff_frame_data = np.diff(frame_data, axis=0)
     # Quantize the blocks of the video
-    quantized_values = quantize(diff_frame_data, n)
+    quantized_values,frame_block_dict = quantize(diff_frame_data, n)
     return quantized_values
 
 

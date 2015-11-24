@@ -42,15 +42,17 @@ def quantize_block(block, bins, frame_num, block_x, block_y):
 
     result = list()
 
+    block_hist = cv2.calcHist([block.astype(np.uint8)],[0],None,[bins],[0,256]) #We could do our local min/max here but lets keep the range (0,256) the same for comparison reasons
+
     for key in frame_occurances:
         result.append({
             'frame_num': frame_num,
             'block_coords': (block_x, block_y),
             'key': key,
-            'val': frame_occurances[key]
+            'val': frame_occurances[key],
         })
 
-    return result
+    return result, block_hist #only 1 histogram per block, dont save to dict for each value in block, but return for the whole block and construct dict to access for compare
 
 def quantize(frame_data, n):
     '''
@@ -60,6 +62,8 @@ def quantize(frame_data, n):
     print 'Running quantization with ' + str(n) + ' bins...'
 
     result = list()
+    frame_block_dict = {}   #stores block dictionary which contains histogram data for blocks
+    block_hist_dict = {}    #stores histogram data for blocks of a frame
     frame_num = 0
 
     #for each entry in frame_data
@@ -69,9 +73,13 @@ def quantize(frame_data, n):
         for block_x in range(0, len(frame), 8):
             for block_y in range(0, len(frame[block_x]), 8):
                 block = frame[block_x:block_x+8, block_y:block_y+8]
-                result.extend(quantize_block(block, n, frame_num, block_x, block_y))
+                block_dict,block_hist = quantize_block(block, n, frame_num, block_x, block_y)
+                block_hist_dict[block_x,block_y] = block_hist
+                result.extend(block_dict)
 
-    return result
+            frame_block_dict[frame_num] = block_hist_dict
+
+    return result, frame_block_dict
 
 def display_histogram(quantized_values, n, from_file=False, image_filename=''):
     print 'Creating histogram.'
@@ -122,7 +130,7 @@ if __name__ == '__main__':
     frame_data = util.getContent(video)
 
     # Quantize the blocks of the video
-    quantized_values = quantize(frame_data, n)
+    quantized_values, frame_block_list = quantize(frame_data, n)
 
     # Write the data to the file
     output_filename = filename.replace('.mp4', '_hist_' + str(n) + '.hst')
