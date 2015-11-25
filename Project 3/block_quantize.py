@@ -49,7 +49,7 @@ def quantize_block(block, bins, frame_num, block_x, block_y):
             'frame_num': frame_num,
             'block_coords': (block_x, block_y),
             'key': key,
-            'val': frame_occurances[key],
+            'val': frame_occurances[key]
         })
 
     return result, block_hist #only 1 histogram per block, dont save to dict for each value in block, but return for the whole block and construct dict to access for compare

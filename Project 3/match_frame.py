@@ -75,7 +75,7 @@ def show_ten_closest(frame_data, feature_summary, frame_num, description):
 def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, bins, description ):
     target_frame = frame_data[target_frame_number-1]  #we need to create block histograms for this frame
     target_frame_block_hist_dict = {}
-    top_ten_frames = [(0,100000000)] * 10 #sufficently large values that will be replace later
+    top_ten_frames = list()
 
     for block_x in range(0, len(target_frame), 8):  #create histogram for the given frame
             for block_y in range(0, len(target_frame[block_x]), 8):
@@ -88,20 +88,15 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
         if keyA == target_frame_number:  #dont compare the frame against itself
             continue
         else:
-            frame_score = 0
+            frame_score = float(0)
             for keyB in frame_block_dict[keyA]:
                 block_hist = frame_block_dict[keyA][keyB[0],keyB[1]]
-                frame_score += cv2.compareHist(target_frame_block_hist_dict[keyB[0],keyB[1]],block_hist, 1)
+                frame_score += cv2.compareHist(target_frame_block_hist_dict[keyB[0],keyB[1]],block_hist, 2)
 
-        largest_diff = 0
-        replace_index = -1
-        for i in range (0,10):
-            diff = top_ten_frames[i][1] - frame_score
-            if largest_diff < diff:
-                largest_diff = diff
-                replace_index = i
-        if replace_index >= 0:
-            top_ten_frames[replace_index] = keyA,largest_diff
+        top_ten_frames.append((keyA, frame_score))
+
+    top_ten_frames.sort(key=lambda tup: tup[1])  # sorts in place
+    top_ten_frames = top_ten_frames[:10]
 
     top_ten_frames = list((x[0] for x in top_ten_frames))    #just need to the frame number, not the diff so we strip that out
     for i in range(0,10):
@@ -138,9 +133,9 @@ if __name__ == '__main__':
 
     target_frame_data = frame_data[f-1]
     rgb_target = cv2.cvtColor(target_frame_data.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    #cv2.imshow('Original frame', rgb_target)
-    #print 'Displaying Original frame - press any key to continue :)'
-    #cv2.waitKey(0)
+    cv2.imshow('Original frame', rgb_target)
+    print 'Displaying Original frame - press any key to continue :)'
+    cv2.waitKey(0)
 
     block_quantized, frame_block_dict = quantize(frame_data, n)
     block_quantized = None #free memory for this, returned from argument but not applicable here
