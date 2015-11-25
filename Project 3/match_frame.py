@@ -91,12 +91,11 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
             frame_score = float(0)
             for keyB in frame_block_dict[keyA]:
                 block_hist = frame_block_dict[keyA][keyB[0],keyB[1]]
-                frame_score += cv2.compareHist(target_frame_block_hist_dict[keyB[0],keyB[1]],block_hist, 1) #Chi-Square compare method, smaller number = higher similarity
+                frame_score += cv2.compareHist(target_frame_block_hist_dict[keyB[0],keyB[1]],block_hist, 0) #Correlation compare
 
         top_ten_frames.append((keyA, frame_score))
 
     top_ten_frames.sort(key=lambda tup: tup[1])  # sorts in place
-    top_ten_frames = top_ten_frames[:10]
 
     top_ten_frames = list((x[0] for x in top_ten_frames))    #just need to the frame number, not the diff so we strip that out
     for i in range(0,10):
