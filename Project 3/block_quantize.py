@@ -72,7 +72,6 @@ def quantize(frame_data, n):
 
     result = list()
     frame_block_dict = {}   #stores block dictionary which contains histogram data for blocks
-    block_hist_dict = {}    #stores histogram data for blocks of a frame
     frame_num = 0
 
     #for each entry in frame_data
@@ -80,6 +79,7 @@ def quantize(frame_data, n):
         frame_num += 1
         print 'Processing regions of frame: ' + str(frame_num)
         for block_x in range(0, len(frame), 8):
+            block_hist_dict = {}    #stores histogram data for blocks of a frame
             for block_y in range(0, len(frame[block_x]), 8):
                 block = frame[block_x:block_x+8, block_y:block_y+8]
                 block_dict,block_hist = quantize_block(block, n, frame_num, block_x, block_y)
