@@ -4,6 +4,20 @@ import sys
 import utility as util
 from os import listdir, path
 
+
+'''
+Stores the indices of the DWT matrix and the order in which the
+data needs to be read from the matrix
+'''
+zigzag = [(0,0),(0,1),(1,0),(2,0),(1,1),(0,2),(0,3),(1,2),
+          (2,1),(3,0),(4,0),(3,1),(2,2),(1,3),(0,4),(0,5),
+          (1,4),(2,3),(3,2),(4,1),(5,0),(6,0),(5,1),(4,2),
+          (3,3),(2,4),(1,5),(0,6),(0,7),(1,6),(2,5),(3,4),
+          (4,3),(5,2),(6,1),(7,0),(7,1),(6,2),(5,3),(4,4),
+          (3,5),(2,6),(1,7),(2,7),(3,6),(4,5),(5,4),(6,3),
+          (7,2),(7,3),(6,4),(5,5),(4,6),(3,7),(4,7),(5,6),
+          (6,5),(7,4),(7,5),(6,6),(5,7),(6,7),(7,6),(7,7)]
+
 '''
 harr(block)
 Applies one stage of 2D Haar wavelet transform on the given block
@@ -67,16 +81,12 @@ def video_blockdwt(frame_data, n):
             for block_y in range(0, len(frame[block_x]), 8):
                 block = frame[block_x:block_x+8, block_y:block_y+8]
                 block_dwt = dwt(block)
-                indexes_of_significant_wavelets = np.argsort(np.absolute(block_dwt), axis=None)[::-1]
                 for i in range(n):
-                    index = indexes_of_significant_wavelets[i]
-                    wavelet_x = index//8
-                    wavelet_y = index%8
                     result.append({
                         'frame_num': frame_num,
                         'block_coords': (block_x, block_y),
-                        'key': (wavelet_x, wavelet_y),
-                        'val': block_dwt[wavelet_x, wavelet_y]
+                        'key': zigzag[i],
+                        'val': block_dwt[zigzag[i]]
                     })
 
     return result
