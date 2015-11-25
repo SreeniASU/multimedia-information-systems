@@ -6,6 +6,15 @@ import numpy as np
 import time
 from os import listdir, path
 
+zigzag = [(0,0),(0,1),(1,0),(2,0),(1,1),(0,2),(0,3),(1,2),
+          (2,1),(3,0),(4,0),(3,1),(2,2),(1,3),(0,4),(0,5),
+          (1,4),(2,3),(3,2),(4,1),(5,0),(6,0),(5,1),(4,2),
+          (3,3),(2,4),(1,5),(0,6),(0,7),(1,6),(2,5),(3,4),
+          (4,3),(5,2),(6,1),(7,0),(7,1),(6,2),(5,3),(4,4),
+          (3,5),(2,6),(1,7),(2,7),(3,6),(4,5),(5,4),(6,3),
+          (7,2),(7,3),(6,4),(5,5),(4,6),(3,7),(4,7),(5,6),
+          (6,5),(7,4),(7,5),(6,6),(5,7),(6,7),(7,6),(7,7)]
+
 # Naive implementation of DCT by directly using the formula
 # Not very good with performance but sticking on to that as this is
 # the direct implementation of the formula and easier to read
@@ -63,18 +72,14 @@ def FindDiscreteCosineTransform(frame_data, n):
                 #FindDCT method is really slow
                 #If you want to compute DCT faster please use FindDCTFast method
                 transform = FindDCTFast(block)
-                significant_cosine_components = np.argsort(np.absolute(transform), axis=None)[::-1]
+
                 for i in range(n):
-                    index = significant_cosine_components[i]
-                    comp_x = index//8
-                    comp_y = index%8
                     result.append({
                         'frame_num': frame_num,
                         'block_coords': (block_x, block_y),
-                        'key': (comp_x, comp_y),
-                        'val': transform[comp_x, comp_y]
+                        'key': zigzag[i],
+                        'val': transform[zigzag[i]]
                     })
-
     return result
 
 if __name__ == '__main__':
