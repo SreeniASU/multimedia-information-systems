@@ -51,6 +51,9 @@ def quantize_block(block, bins, frame_num, block_x, block_y):
 
     result = list()
 
+    if min_value == max_value:
+        max_value += 1
+
     block_hist = cv2.calcHist([block.astype(np.uint8)],[0],None,[bins],[min_value,max_value]) #We could do our local min/max here but lets keep the range (0,256) the same for comparison reasons
 
     for key in frame_occurances:
