@@ -42,6 +42,38 @@ def frame_dwt(frame):
 
     return dwt
 
+def create_zigzag(width, height):
+    result = list()
+
+    x = 0
+    y = 0
+
+    while x < width-1 or y < height-1:
+        result.append((x,y))
+        if y < height-1:
+            y += 1
+        else:
+            x += 1
+
+        while y > 0 and x < width-1:
+            result.append((x,y))
+            y -= 1
+            x += 1
+
+        result.append((x,y))
+        if x < width-1:
+            x += 1
+        else:
+            y += 1
+
+        while x > 0 and y < height-1:
+            result.append((x,y))
+            x -= 1
+            y += 1
+
+    result.append((x,y))
+    return result
+
 '''
 video_blockdwt
 Applies block-wise dwt to video and writes to .bwt file
@@ -61,15 +93,12 @@ def video_framedwt(frame_data, m):
         print 'Frame number: ' + str(frame_num)
 
         frame_wavelets = frame_dwt(frame)
-        indexes_of_significant_wavelets = np.argsort(np.absolute(frame_wavelets), axis=None)[::-1]
+        zigzag = create_zigzag(len(frame), len(frame[0]))
         for i in range(m):
-            index = indexes_of_significant_wavelets[i]
-            wavelet_x = index//len(frame_wavelets)
-            wavelet_y = index%len(frame_wavelets[0])
             result.append({
                 'frame_num': frame_num,
-                'key': (wavelet_x, wavelet_y),
-                'val': frame_wavelets[wavelet_x, wavelet_y]
+                'key': zigzag[i],
+                'val': frame_wavelets[zigzag[i]]
             })
 
     return result
