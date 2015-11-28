@@ -82,7 +82,6 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
 
     print("Comparing frames...")
     for keyA in frame_block_dict:
-        print keyA
         if keyA == target_frame_number-1:  #dont compare the frame against itself
             continue
         else:
