@@ -76,16 +76,9 @@ def show_ten_closest(frame_data, feature_summary, frame_num, description):
     cv2.destroyAllWindows()
     return
 
-def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, bins, description ):
-    target_frame = frame_data[target_frame_number-1]  #we need to create block histograms for this frame
-    target_frame_block_hist_dict = {}
+def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, description ):
+    target_frame_block_hist_dict = frame_block_dict[target_frame_number-1]
     top_ten_frames = list()
-
-    for block_x in range(0, len(target_frame), 8):  #create histogram for the given frame
-            for block_y in range(0, len(target_frame[block_x]), 8):
-                target_frame_block = target_frame[block_x:block_x+8, block_y:block_y+8]
-                target_frame_block_hist = cv2.calcHist([target_frame_block.astype(np.uint8)],[0],None,[bins],[0,256])
-                target_frame_block_hist_dict[block_x,block_y] = target_frame_block_hist
 
     print("Comparing frames...")
     for keyA in frame_block_dict:
@@ -108,8 +101,8 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
         # For each of those frame numbers, display the image in a window with the number
         index = top_ten_frame_indexes[i]
         score = top_ten_frame_values[i]
-        rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        frame_description = description + ' #' + str(i + 1) + ': frame ' + str(index + 1) + '. Score: ' + str(score)
+        rgb_target = cv2.cvtColor(frame_data[index-1].astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        frame_description = description + ' #' + str(i + 1) + ': frame ' + str(index) + '. Score: ' + str(score)
         print frame_description
         cv2.imshow(frame_description, rgb_target)
         cv2.waitKey(0)
@@ -148,7 +141,7 @@ if __name__ == '__main__':
 
     block_quantized, frame_block_dict = quantize(frame_data, n)
     block_quantized = None #free memory for this, returned from argument but not applicable here
-    show_ten_quantized_closest(frame_data, frame_block_dict, f, n, 'Quantization')
+    show_ten_quantized_closest(frame_data, frame_block_dict, f, 'Quantization')
 
     block_dct = FindDiscreteCosineTransform(frame_data, n)
     show_ten_closest(frame_data, block_dct, f, 'DCT')
@@ -157,7 +150,7 @@ if __name__ == '__main__':
     show_ten_closest(frame_data, block_dwt, f, 'Block-level DWT')
 
     block_diff_quantized, frame_block_dict = diff_quantize(frame_data, n)
-    show_ten_quantized_closest(frame_data, frame_block_dict, f, n, 'Diff Quantization')
+    show_ten_quantized_closest(frame_data, frame_block_dict, f, 'Diff Quantization')
 
     frame_dwt = video_framedwt(frame_data, m)
     show_ten_closest(frame_data, frame_dwt, f, 'Frame-level DWT')

@@ -13,12 +13,6 @@ import matplotlib.pyplot as plt
 import utility as util
 from os import listdir, path
 
-def replace_value(block,value,new_value):
-    for i in range(len(block)):
-        for j in range(len(block[0])):
-            if block[i][j] == value:
-                block[i][j] = new_value
-
 def quantize_block(block, bins, frame_num, block_x, block_y):
     '''
     Quantizes a block using the number of bins
@@ -36,15 +30,12 @@ def quantize_block(block, bins, frame_num, block_x, block_y):
     for val in np.nditer(block):
         if bin_size == 0:
             quantized_value = min_value
-            replace_value(block, val, quantized_value)
         else:
             quanta = math.floor((val - min_value) / bin_size) + 0.5
             quantized_value = min_value + quanta * bin_size
-            replace_value(block, val, quantized_value)
 
         if quantized_value >= max_value:
             quantized_value = min_value + (bins - 0.5)*bin_size
-            replace_value(block, val, quantized_value)
 
         quantized_value = round(quantized_value, 7)
         frame_occurances[quantized_value] += 1
