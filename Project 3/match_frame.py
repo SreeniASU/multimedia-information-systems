@@ -68,7 +68,7 @@ def show_ten_closest(frame_data, feature_summary, frame_num, description):
         index = closest_match_indexes[i]
         score = sorted_scores[i]
         rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        frame_description = description + ' #' + str(i) + ': frame ' + str(index) + '. Score: ' + str(score)
+        frame_description = description + ' #' + str(i) + ': frame ' + str(index + 1) + '. Score: ' + str(score)
         print frame_description
         cv2.imshow(frame_description, rgb_target)
         cv2.waitKey(0)
@@ -108,7 +108,7 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
         index = top_ten_frame_indexes[i]
         score = top_ten_frame_values[i]
         rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        frame_description = description + ' #' + str(i + 1) + ': frame ' + str(index) + '. Score: ' + str(score)
+        frame_description = description + ' #' + str(i + 1) + ': frame ' + str(index + 1) + '. Score: ' + str(score)
         print frame_description
         cv2.imshow(frame_description, rgb_target)
         cv2.waitKey(0)
