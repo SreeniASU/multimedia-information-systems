@@ -46,8 +46,9 @@ def indexes_of_closest_matches(target_features, features_per_frame):
     # Take all of the frames, and for each one apply the score_feature function,
     # which adds up all of the differences in the values in similar keys
     scores = map(score_feature, features_per_frame)
-    closest_matches = [i[0] for i in sorted(enumerate(scores), key=lambda x:x[1])]
-    return closest_matches
+    closest_match_indexes = [i[0] for i in sorted(enumerate(scores), key=lambda x:x[1])]
+    sorted_scores = sorted(scores)
+    return closest_match_indexes, sorted_scores
 
 def show_ten_closest(frame_data, feature_summary, frame_num, description):
     # List of dictionaries - has length of the number of frames, which we will fill
@@ -61,12 +62,15 @@ def show_ten_closest(frame_data, feature_summary, frame_num, description):
     # Grab the frame we're interested in:
     target_features = features_per_frame[frame_num - 1]
     # Get the frame numbers of the most similar frames
-    closest_matches = indexes_of_closest_matches(target_features, features_per_frame)
+    closest_match_indexes, sorted_scores = indexes_of_closest_matches(target_features, features_per_frame)
     for i in range(1,11):
         # For each of those frame numbers, display the image in a window with the number
-        index = closest_matches[i]
+        index = closest_match_indexes[i]
+        score = sorted_scores[i]
         rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        cv2.imshow(description + ' ' + str(i), rgb_target)
+        frame_description = description + ' #' + str(i) + ': frame ' + str(index + 1) + '. Score: ' + str(score)
+        print frame_description
+        cv2.imshow(frame_description, rgb_target)
         cv2.waitKey(0)
 
     cv2.destroyAllWindows()
@@ -85,7 +89,7 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
 
     print("Comparing frames...")
     for keyA in frame_block_dict:
-        if keyA == target_frame_number:  #dont compare the frame against itself
+        if keyA == target_frame_number-1:  #dont compare the frame against itself
             continue
         else:
             frame_score = float(0)
@@ -96,16 +100,22 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
         top_ten_frames.append((keyA, frame_score))
 
     top_ten_frames.sort(key=lambda tup: tup[1])  # sorts in place
+    top_ten_frames.reverse()
 
-    top_ten_frames = list((x[0] for x in top_ten_frames))    #just need to the frame number, not the diff so we strip that out
+    top_ten_frame_indexes = list((x[0] for x in top_ten_frames))    #just need to the frame number, not the diff so we strip that out
+    top_ten_frame_values = list((x[1] for x in top_ten_frames))
     for i in range(0,10):
         # For each of those frame numbers, display the image in a window with the number
-        index = top_ten_frames[i]
+        index = top_ten_frame_indexes[i]
+        score = top_ten_frame_values[i]
         rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
-        cv2.imshow(description + ' ' + str(i), rgb_target)
+        frame_description = description + ' #' + str(i + 1) + ': frame ' + str(index + 1) + '. Score: ' + str(score)
+        print frame_description
+        cv2.imshow(frame_description, rgb_target)
         cv2.waitKey(0)
 
     cv2.destroyAllWindows()
+    return
 
 
 if __name__ == '__main__':
@@ -132,7 +142,7 @@ if __name__ == '__main__':
 
     target_frame_data = frame_data[f-1]
     rgb_target = cv2.cvtColor(target_frame_data.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-    cv2.imshow('Original frame', rgb_target)
+    cv2.imshow('Original frame: ' + str(f), rgb_target)
     print 'Displaying Original frame - press any key to continue :)'
     cv2.waitKey(0)
 
