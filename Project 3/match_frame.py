@@ -101,7 +101,6 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
         # For each of those frame numbers, display the image in a window with the number
         index = top_ten_frame_indexes[i]
         score = top_ten_frame_values[i]
-        print frame_data[index - 1]
         rgb_target = cv2.cvtColor(frame_data[index-1].astype(np.uint8), cv2.COLOR_GRAY2BGR)
         frame_description = description + ' #' + str(i + 1) + ': frame ' + str(index) + '. Score: ' + str(score)
         print frame_description
