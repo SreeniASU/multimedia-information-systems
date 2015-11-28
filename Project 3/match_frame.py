@@ -72,6 +72,41 @@ def show_ten_closest(frame_data, feature_summary, frame_num, description):
     cv2.destroyAllWindows()
     return
 
+def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, bins, description ):
+    target_frame = frame_data[target_frame_number-1]  #we need to create block histograms for this frame
+    target_frame_block_hist_dict = {}
+    top_ten_frames = list()
+
+    for block_x in range(0, len(target_frame), 8):  #create histogram for the given frame
+            for block_y in range(0, len(target_frame[block_x]), 8):
+                target_frame_block = target_frame[block_x:block_x+8, block_y:block_y+8]
+                target_frame_block_hist = cv2.calcHist([target_frame_block.astype(np.uint8)],[0],None,[bins],[0,256])
+                target_frame_block_hist_dict[block_x,block_y] = target_frame_block_hist
+
+    print("Comparing frames...")
+    for keyA in frame_block_dict:
+        if keyA == target_frame_number:  #dont compare the frame against itself
+            continue
+        else:
+            frame_score = float(0)
+            for keyB in frame_block_dict[keyA]:
+                block_hist = frame_block_dict[keyA][keyB[0],keyB[1]]
+                frame_score += cv2.compareHist(target_frame_block_hist_dict[keyB[0],keyB[1]],block_hist, 0) #Correlation compare
+
+        top_ten_frames.append((keyA, frame_score))
+
+    top_ten_frames.sort(key=lambda tup: tup[1])  # sorts in place
+
+    top_ten_frames = list((x[0] for x in top_ten_frames))    #just need to the frame number, not the diff so we strip that out
+    for i in range(0,10):
+        # For each of those frame numbers, display the image in a window with the number
+        index = top_ten_frames[i]
+        rgb_target = cv2.cvtColor(frame_data[index].astype(np.uint8), cv2.COLOR_GRAY2BGR)
+        cv2.imshow(description + ' ' + str(i), rgb_target)
+        cv2.waitKey(0)
+
+    cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
@@ -101,8 +136,9 @@ if __name__ == '__main__':
     print 'Displaying Original frame - press any key to continue :)'
     cv2.waitKey(0)
 
-    block_quantized = quantize(frame_data, n)
-    show_ten_closest(frame_data, block_quantized, f, 'Quantization')
+    block_quantized, frame_block_dict = quantize(frame_data, n)
+    block_quantized = None #free memory for this, returned from argument but not applicable here
+    show_ten_quantized_closest(frame_data, frame_block_dict, f, n, 'Quantization')
 
     block_dct = FindDiscreteCosineTransform(frame_data, n)
     show_ten_closest(frame_data, block_dct, f, 'DCT')
@@ -110,8 +146,8 @@ if __name__ == '__main__':
     block_dwt = video_blockdwt(frame_data, n)
     show_ten_closest(frame_data, block_dwt, f, 'Block-level DWT')
 
-    block_diff_quantized = diff_quantize(frame_data, n)
-    show_ten_closest(frame_data, block_diff_quantized, f, 'Diff Quantization')
+    block_diff_quantized, frame_block_dict = diff_quantize(frame_data, n)
+    show_ten_quantized_closest(frame_data, frame_block_dict, f, n, 'Diff Quantization')
 
     frame_dwt = video_framedwt(frame_data, m)
     show_ten_closest(frame_data, frame_dwt, f, 'Frame-level DWT')

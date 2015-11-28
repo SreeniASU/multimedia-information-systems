@@ -13,6 +13,12 @@ import matplotlib.pyplot as plt
 import utility as util
 from os import listdir, path
 
+def replace_value(block,value,new_value):
+    for i in range(len(block)):
+        for j in range(len(block[0])):
+            if block[i][j] == value:
+                block[i][j] = new_value
+
 def quantize_block(block, bins, frame_num, block_x, block_y):
     '''
     Quantizes a block using the number of bins
@@ -30,17 +36,25 @@ def quantize_block(block, bins, frame_num, block_x, block_y):
     for val in np.nditer(block):
         if bin_size == 0:
             quantized_value = min_value
+            replace_value(block, val, quantized_value)
         else:
             quanta = math.floor((val - min_value) / bin_size) + 0.5
             quantized_value = min_value + quanta * bin_size
+            replace_value(block, val, quantized_value)
 
         if quantized_value >= max_value:
             quantized_value = min_value + (bins - 0.5)*bin_size
+            replace_value(block, val, quantized_value)
 
         quantized_value = round(quantized_value, 7)
         frame_occurances[quantized_value] += 1
 
     result = list()
+
+    if min_value == max_value:
+        max_value += 1
+
+    block_hist = cv2.calcHist([block.astype(np.uint8)],[0],None,[bins],[min_value,max_value]) #We could do our local min/max here but lets keep the range (0,256) the same for comparison reasons
 
     for key in frame_occurances:
         result.append({
@@ -50,7 +64,7 @@ def quantize_block(block, bins, frame_num, block_x, block_y):
             'val': frame_occurances[key]
         })
 
-    return result
+    return result, block_hist #only 1 histogram per block, dont save to dict for each value in block, but return for the whole block and construct dict to access for compare
 
 def quantize(frame_data, n):
     '''
@@ -60,6 +74,7 @@ def quantize(frame_data, n):
     print 'Running quantization with ' + str(n) + ' bins...'
 
     result = list()
+    frame_block_dict = {}   #stores block dictionary which contains histogram data for blocks
     frame_num = 0
 
     #for each entry in frame_data
@@ -67,11 +82,16 @@ def quantize(frame_data, n):
         frame_num += 1
         print 'Processing regions of frame: ' + str(frame_num)
         for block_x in range(0, len(frame), 8):
+            block_hist_dict = {}    #stores histogram data for blocks of a frame
             for block_y in range(0, len(frame[block_x]), 8):
                 block = frame[block_x:block_x+8, block_y:block_y+8]
-                result.extend(quantize_block(block, n, frame_num, block_x, block_y))
+                block_dict,block_hist = quantize_block(block, n, frame_num, block_x, block_y)
+                block_hist_dict[block_x,block_y] = block_hist
+                result.extend(block_dict)
 
-    return result
+            frame_block_dict[frame_num] = block_hist_dict
+
+    return result, frame_block_dict
 
 def display_histogram(quantized_values, n, from_file=False, image_filename=''):
     print 'Creating histogram.'
@@ -122,7 +142,7 @@ if __name__ == '__main__':
     frame_data = util.getContent(video)
 
     # Quantize the blocks of the video
-    quantized_values = quantize(frame_data, n)
+    quantized_values, frame_block_list = quantize(frame_data, n)
 
     # Write the data to the file
     output_filename = filename.replace('.mp4', '_hist_' + str(n) + '.hst')
