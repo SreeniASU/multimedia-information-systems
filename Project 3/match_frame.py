@@ -100,6 +100,7 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
         top_ten_frames.append((keyA, frame_score))
 
     top_ten_frames.sort(key=lambda tup: tup[1])  # sorts in place
+    top_ten_frames.reverse()
 
     top_ten_frame_indexes = list((x[0] for x in top_ten_frames))    #just need to the frame number, not the diff so we strip that out
     top_ten_frame_values = list((x[1] for x in top_ten_frames))
