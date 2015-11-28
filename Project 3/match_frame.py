@@ -146,8 +146,8 @@ if __name__ == '__main__':
     block_dwt = video_blockdwt(frame_data, n)
     show_ten_closest(frame_data, block_dwt, f, 'Block-level DWT')
 
-    block_diff_quantized = diff_quantize(frame_data, n)
-    show_ten_closest(frame_data, block_diff_quantized, f, 'Diff Quantization')
+    block_diff_quantized, frame_block_dict = diff_quantize(frame_data, n)
+    show_ten_quantized_closest(frame_data, frame_block_dict, f, n, 'Diff Quantization')
 
     frame_dwt = video_framedwt(frame_data, m)
     show_ten_closest(frame_data, frame_dwt, f, 'Frame-level DWT')
