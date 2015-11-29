@@ -15,10 +15,10 @@ def diff_quantize(frame_data, n):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        root_dir = '/home/perry/Desktop/output'#util.safeGetDirectory()
+        root_dir = util.safeGetDirectory()
         all_files = [f for f in listdir(root_dir) if path.isfile(path.join(root_dir, f))]
-        input_file = "R2.mp4" #util.getVideoFile(all_files)
-        n = 5#util.getConstant('n')
+        input_file = util.getVideoFile(all_files)
+        n = util.getConstant('n')
         filename = path.join(root_dir, input_file)
     elif len(sys.argv) == 3:
         filename = path.realpath(sys.argv[2])
