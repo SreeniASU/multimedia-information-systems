@@ -88,7 +88,7 @@ def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, 
             frame_score = float(0)
             for keyB in frame_block_dict[keyA]:
                 block_hist = frame_block_dict[keyA][keyB[0],keyB[1]]
-                frame_score += cv2.compareHist(target_frame_block_hist_dict[keyB[0],keyB[1]],block_hist, 0) #Correlation compare
+                frame_score += cv2.compareHist(target_frame_block_hist_dict[keyB[0],keyB[1]],block_hist, 2) #Intersection compare
 
         top_ten_frames.append((keyA, frame_score))
 
