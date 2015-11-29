@@ -77,12 +77,12 @@ def show_ten_closest(frame_data, feature_summary, frame_num, description):
     return
 
 def show_ten_quantized_closest(frame_data,frame_block_dict,target_frame_number, description ):
-    target_frame_block_hist_dict = frame_block_dict[target_frame_number-1]
+    target_frame_block_hist_dict = frame_block_dict[target_frame_number]
     top_ten_frames = list()
 
     print("Comparing frames...")
     for keyA in frame_block_dict:
-        if keyA == target_frame_number-1:  #dont compare the frame against itself
+        if keyA == target_frame_number:  #dont compare the frame against itself
             continue
         else:
             frame_score = float(0)
