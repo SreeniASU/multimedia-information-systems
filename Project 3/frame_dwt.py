@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
 import sys
-import os
-# from os import listdir
+from os import listdir
 from os import path
 from block_dwt import haar
 import utility as util
