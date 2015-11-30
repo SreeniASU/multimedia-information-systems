@@ -31,7 +31,7 @@ if __name__ == '__main__':
     frame_data = util.getContent(video)
 
     # Quantize the blocks of the video
-    quantized_values = diff_quantize(frame_data, n)
+    quantized_values, frame_block_dict = diff_quantize(frame_data, n)
 
     # Write the data to the file
     output_filename = filename.replace('.mp4', '_diff_' + str(n) + '.dhc')
